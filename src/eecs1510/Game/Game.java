@@ -10,8 +10,11 @@ import java.util.Scanner;
 public class Game {
 
     public static final char QUIT = 'q';
+    public static final char HELP = 'h';
 
     private final Board gameBoard;
+
+    private boolean lost = false;
 
     public static void main(String[] args){
         new Game().run();
@@ -26,7 +29,10 @@ public class Game {
 
             String warning = "";
 
-            while(true){
+            while(!lost){
+                // Clear Screen on compatible terminals
+                clearScreen();
+
                 printBoard(gameBoard);
                 System.out.println("");
 
@@ -45,25 +51,57 @@ public class Game {
 
                 if(code == QUIT){
                     break;
+                } else if(code==HELP){
+                    clearScreen();
+                    printHelp();
+                    s.next();
+                    continue;
                 }
 
                 try{
                     Direction d = Direction.parse(code);
                     gameBoard.squash(d);
-                    gameBoard.placeRandom();
+                    if(!gameBoard.placeRandom()){
+                        lost = true;
+                        doGameLost();
+                    }
                 }catch(IllegalArgumentException e){
                     warning += "WARNING: " + e.getMessage() + "\n";
                 }
-
-                // Clear Screen on compatible terminals
-                //System.out.print("\u001b[2J");
-                //System.out.flush();
             }
         }catch(Exception e){
             System.err.println("Something went wrong!: " + e.getMessage());
             e.printStackTrace();
         }
 
+    }
+
+    private void doGameLost(){
+        if(!lost){
+            throw new IllegalStateException("Game is still going!");
+        }
+
+        System.out.print("You Lost the Game!");
+        System.exit(-1);
+
+    }
+
+    private void clearScreen(){
+        System.out.print("\u001b[2J");
+        System.out.flush();
+    }
+
+    public void printHelp(){
+        System.out.println("2048 (A clone of \"3's\"), Developed by Nathan Lowe for EECS 1510\n");
+        System.out.println("Squash tiles in one of four directions. Tiles that match will be merged, tiles closest to the destination will be merged first!");
+        System.out.println("Keys:");
+        System.out.println("\th: This Help Menu");
+        System.out.println("\tq: Quit\n");
+        System.out.println("\t\t\t\tUP (i or w)");
+        System.out.println("\tLEFT (a or h)\t\t\tRIGHT(d or l)");
+        System.out.println("\t\t\t\tDOWN (s or k)\n");
+
+        System.out.println("Press Any Key to return to the game...");
     }
 
     public void printBoard(Board b){

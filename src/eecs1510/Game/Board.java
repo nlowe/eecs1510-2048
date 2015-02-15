@@ -1,6 +1,7 @@
 package eecs1510.Game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by nathan on 2/12/15
@@ -39,7 +40,7 @@ public class Board {
     }
 
     /**
-     * Squases all elements in the specified direction. Note that this does NOT
+     * Squashes all elements in the specified direction. Note that this does NOT
      * generate a random tile and add it to the game board. For that, you need
      * to call <code>placeRandom()</code>
      *
@@ -55,94 +56,103 @@ public class Board {
         }
     }
 
-    /**
-     * For each column, combines like elements top down once and then
-     * aligns the row with the top of the board
-     */
     private void squashNorth(){
-        for(int column = 0, pointer=0; column < size; column++){
-            for(int row = 0; row < size; row++){
-                if(data[row][column] > 0){
-                    if(row > 0 && data[row][column] == data[pointer][column]){
-                        data[pointer][column] *= 2;
-                    } else {
-                        data[pointer++][column] = data[row][column];
-                    }
+        for(int column = 0; column < size; column++){
+            // Strip zeros
+            int[] filteredColumn = Arrays.stream(slice(column)).filter((v) -> v > 0).toArray();
+            if(filteredColumn.length == 0) continue;
 
-                    if(row > 0){
-                        data[row][column] = 0;
-                    }
+            // Merge like numbers from left to right
+            for(int i=0; i<filteredColumn.length-1; i++){
+                if(filteredColumn[i] == filteredColumn[i+1]){
+                    filteredColumn[i] *= 2;
+                    filteredColumn[i+1] = 0;
                 }
             }
 
-            pointer = 0;
+            // Update results
+            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            for(int row = 0; row < size; row++){
+                data[row][column] = row < results.length ? results[row] : 0;
+            }
         }
     }
 
     private void squashEast(){
-        for(int row = 0, pointer=size-1; row < size; row++){
-            for(int column = size-1; column >= 0; column--){
-                if(data[row][column] > 0){
-                    if(column > 0 && data[row][column] == data[column][pointer]){
-                        data[column][pointer] *= 2;
-                    } else {
-                        data[column][pointer--] = data[row][column];
-                    }
+        for(int row = 0; row < size; row++){
+            // Strip zeros
+            int[] filteredColumn = Arrays.stream(data[row]).filter((v) -> v > 0).toArray();
+            if(filteredColumn.length == 0) continue;
 
-                    if(column < size-1){
-                        data[row][column] = 0;
-                    }
+            // Merge like numbers from right to left
+            for(int i=filteredColumn.length-1; i >= 1; i--){
+                if(filteredColumn[i] == filteredColumn[i-1]){
+                    filteredColumn[i] *= 2;
+                    filteredColumn[i-1] = 0;
                 }
             }
 
-            pointer = size-1;
+            // Update results
+            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            for(int column = size-1, i=results.length-1; column >= 0; column--, i--){
+                data[row][column] = i >= 0 ? results[i] : 0;
+            }
         }
     }
 
     private void squashSouth(){
-        for(int column = 0, pointer=size-1; column < size; column++){
-            for(int row = size-1; row >= 0; row--){
-                if(data[row][column] > 0){
-                    if(row > 0 && data[row][column] == data[pointer][column]){
-                        data[pointer][column] *= 2;
-                    } else {
-                        data[pointer--][column] = data[row][column];
-                    }
+        for(int column = 0; column < size; column++){
+            // Strip zeros
+            int[] filteredColumn = Arrays.stream(slice(column)).filter((v) -> v > 0).toArray();
+            if(filteredColumn.length == 0) continue;
 
-                    if(row < size-1){
-                        data[row][column] = 0;
-                    }
+            // Merge like numbers from right to left
+            for(int i=filteredColumn.length-1; i >= 1; i--){
+                if(filteredColumn[i] == filteredColumn[i-1]){
+                    filteredColumn[i] *= 2;
+                    filteredColumn[i-1] = 0;
                 }
             }
 
-            pointer = size-1;
+            // Update results
+            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            for(int row = size-1, i = results.length-1; row >= 0; row--, i--){
+                data[row][column] = i >= 0 ? results[i] : 0;
+            }
         }
     }
 
     private void squashWest(){
-        for(int row = 0, pointer=0; row < size; row++){
-            for(int column = 0; column < size; column++){
-                if(data[row][column] > 0){
-                    if(column > 0 && data[row][column] == data[row][pointer]){
-                        data[row][pointer] *= 2;
-                    } else {
-                        data[row][pointer++] = data[row][column];
-                    }
+        for(int row = 0; row < size; row++){
+            // Strip zeros
+            int[] filteredColumn = Arrays.stream(data[row]).filter((v) -> v > 0).toArray();
+            if(filteredColumn.length == 0) continue;
 
-                    if(column > 0){
-                        data[row][column] = 0;
-                    }
+            // Merge like numbers from left to right
+            for(int i=0; i<filteredColumn.length-1; i++){
+                if(filteredColumn[i] == filteredColumn[i+1]){
+                    filteredColumn[i] *= 2;
+                    filteredColumn[i+1] = 0;
                 }
             }
 
-            pointer = 0;
+            // Update results
+            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            for(int column = 0; column < size; column++){
+                data[row][column] = column < results.length ? results[column] : 0;
+            }
         }
     }
 
-    public void placeRandom(){
+    public boolean placeRandom(){
         int initialValue = Math.random() >= FOUR_THRESHOLD ? 4 : 2;
 
         int[] freeRows = getFreeRows();
+
+        if(freeRows.length == 0){
+            return false;
+        }
+
         int freeRow = freeRows[(int)(Math.random() * freeRows.length)];
 
         int[] freeColumns = getFreeColumns(freeRow);
@@ -150,7 +160,10 @@ public class Board {
 
         System.out.println("Placing " + initialValue + " in " + freeRow + "," + freeColumn);
 
+        assert(data[freeRow][freeColumn] == 0);
         data[freeRow][freeColumn] = initialValue;
+
+        return true;
     }
 
     /**
@@ -199,6 +212,16 @@ public class Board {
         }
 
         return results;
+    }
+
+    private int[] slice(int column){
+        int[] result = new int[size];
+
+        for(int i=0; i<size; i++){
+            result[i] = data[i][column];
+        }
+
+        return result;
     }
 
 }
