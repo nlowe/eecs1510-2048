@@ -12,12 +12,12 @@ public class Board {
 
     /** The default size of the game board */
     public static final int DEFAULT_SIZE = 4;
-
+    /** What value determines when the game has been "won" */
+    public static final int WIN_CONDITION_VALUE = 2048;
     /** Any random number above this will generate a four */
     public static final double FOUR_THRESHOLD = 0.4;
 
     private final int size;
-
     private final int[][] data;
 
     public Board(){
@@ -31,10 +31,20 @@ public class Board {
         placeRandom();
     }
 
+    /**
+     * @return the Size of the game board (which is square)
+     */
     public int getSize(){
         return size;
     }
 
+    /**
+     * Gets the element at the specified row and column
+     *
+     * @param row
+     * @param column
+     * @return
+     */
     public int getElement(int row, int column){
         return data[row][column];
     }
@@ -56,22 +66,42 @@ public class Board {
         }
     }
 
+    /**
+     * Merges like items in the specified direction and then strips all zeros from the array
+     *
+     * @param source
+     * @param LTR
+     * @return
+     */
+    private int[] mergeAndReduce(int[] source, boolean LTR){
+        if(LTR){
+            for(int i=0; i<source.length-1; i++){
+                if(source[i] == source[i+1]){
+                    source[i] *= 2;
+                    source[i+1] = 0;
+                }
+            }
+
+            return Arrays.stream(source).filter((v) -> v > 0).toArray();
+        }else{
+            for(int i=source.length-1; i >= 1; i--){
+                if(source[i] == source[i-1]){
+                    source[i] *= 2;
+                    source[i-1] = 0;
+                }
+            }
+
+            return Arrays.stream(source).filter((v) -> v > 0).toArray();
+        }
+    }
+
     private void squashNorth(){
         for(int column = 0; column < size; column++){
             // Strip zeros
             int[] filteredColumn = Arrays.stream(slice(column)).filter((v) -> v > 0).toArray();
             if(filteredColumn.length == 0) continue;
 
-            // Merge like numbers from left to right
-            for(int i=0; i<filteredColumn.length-1; i++){
-                if(filteredColumn[i] == filteredColumn[i+1]){
-                    filteredColumn[i] *= 2;
-                    filteredColumn[i+1] = 0;
-                }
-            }
-
-            // Update results
-            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            int[] results = mergeAndReduce(filteredColumn, true);
             for(int row = 0; row < size; row++){
                 data[row][column] = row < results.length ? results[row] : 0;
             }
@@ -84,16 +114,7 @@ public class Board {
             int[] filteredColumn = Arrays.stream(data[row]).filter((v) -> v > 0).toArray();
             if(filteredColumn.length == 0) continue;
 
-            // Merge like numbers from right to left
-            for(int i=filteredColumn.length-1; i >= 1; i--){
-                if(filteredColumn[i] == filteredColumn[i-1]){
-                    filteredColumn[i] *= 2;
-                    filteredColumn[i-1] = 0;
-                }
-            }
-
-            // Update results
-            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            int[] results = mergeAndReduce(filteredColumn, false);
             for(int column = size-1, i=results.length-1; column >= 0; column--, i--){
                 data[row][column] = i >= 0 ? results[i] : 0;
             }
@@ -106,16 +127,7 @@ public class Board {
             int[] filteredColumn = Arrays.stream(slice(column)).filter((v) -> v > 0).toArray();
             if(filteredColumn.length == 0) continue;
 
-            // Merge like numbers from right to left
-            for(int i=filteredColumn.length-1; i >= 1; i--){
-                if(filteredColumn[i] == filteredColumn[i-1]){
-                    filteredColumn[i] *= 2;
-                    filteredColumn[i-1] = 0;
-                }
-            }
-
-            // Update results
-            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            int[] results = mergeAndReduce(filteredColumn, false);
             for(int row = size-1, i = results.length-1; row >= 0; row--, i--){
                 data[row][column] = i >= 0 ? results[i] : 0;
             }
@@ -128,22 +140,19 @@ public class Board {
             int[] filteredColumn = Arrays.stream(data[row]).filter((v) -> v > 0).toArray();
             if(filteredColumn.length == 0) continue;
 
-            // Merge like numbers from left to right
-            for(int i=0; i<filteredColumn.length-1; i++){
-                if(filteredColumn[i] == filteredColumn[i+1]){
-                    filteredColumn[i] *= 2;
-                    filteredColumn[i+1] = 0;
-                }
-            }
-
-            // Update results
-            int[] results = Arrays.stream(filteredColumn).filter((v) -> v > 0).toArray();
+            int[] results = mergeAndReduce(filteredColumn, true);
             for(int column = 0; column < size; column++){
                 data[row][column] = column < results.length ? results[column] : 0;
             }
         }
     }
 
+    /**
+     * Places a random 2 or 4 on the game board at a free space.
+     * If there are no more free spaces, this method returns false.
+     *
+     * @return true if a value was able to be placed
+     */
     public boolean placeRandom(){
         int initialValue = Math.random() >= FOUR_THRESHOLD ? 4 : 2;
 
@@ -173,6 +182,7 @@ public class Board {
      */
     public int[] getFreeRows(){
         ArrayList<Integer> rows = new ArrayList<>();
+
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
                 if(data[i][j] <= 0){
@@ -214,6 +224,13 @@ public class Board {
         return results;
     }
 
+    /**
+     * Extract a vertical slice from the board at a given column
+     *
+     * @param column The column to slice
+     *
+     * @return a vertical slice of the board at the specified column
+     */
     private int[] slice(int column){
         int[] result = new int[size];
 
@@ -224,4 +241,13 @@ public class Board {
         return result;
     }
 
+    /**
+     * Determines whether or not the board is a "winning" board
+     *
+     * @return true iff the board contains a cell with the value <code>WIN_CONDITION_VALUE</code>
+     */
+    public boolean isWon(){
+        //We're using Java 8, might as well make use of it
+        return Arrays.stream(data).flatMapToInt(Arrays::stream).max().getAsInt() >= WIN_CONDITION_VALUE;
+    }
 }
