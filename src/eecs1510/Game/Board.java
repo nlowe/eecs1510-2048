@@ -55,96 +55,123 @@ public class Board {
      * to call <code>placeRandom()</code>
      *
      * @param d The direction to squash elements in
+     * @return The total number of squashed tiles
      */
-    public void squash(Direction d){
+    public int squash(Direction d){
         System.out.println("Squashing " + d);
         switch(d){
-            case NORTH:{ squashNorth(); break; }
-            case SOUTH:{ squashSouth(); break; }
-            case EAST: { squashEast();  break; }
-            case WEST: { squashWest();  break; }
+            case NORTH:{ return squashNorth(); }
+            case SOUTH:{ return squashSouth(); }
+            case EAST: { return squashEast();  }
+            case WEST: { return squashWest();  }
+            default: return 0;
         }
     }
 
     /**
-     * Merges like items in the specified direction and then strips all zeros from the array
+     * Merges like items in the specified direction
      *
      * @param source
      * @param LTR
-     * @return
+     * @return the total number of merged elements
      */
-    private int[] mergeAndReduce(int[] source, boolean LTR){
+    private int merge(int[] source, boolean LTR){
+        int totalMerged = 0;
+
         if(LTR){
             for(int i=0; i<source.length-1; i++){
                 if(source[i] == source[i+1]){
                     source[i] *= 2;
                     source[i+1] = 0;
+                    totalMerged++;
                 }
             }
-
-            return Arrays.stream(source).filter((v) -> v > 0).toArray();
         }else{
             for(int i=source.length-1; i >= 1; i--){
                 if(source[i] == source[i-1]){
                     source[i] *= 2;
                     source[i-1] = 0;
+                    totalMerged++;
                 }
             }
-
-            return Arrays.stream(source).filter((v) -> v > 0).toArray();
         }
+
+        return totalMerged;
     }
 
-    private void squashNorth(){
+    private int[] stripZeros(int[] arr){
+        return Arrays.stream(arr).filter((v) -> v > 0).toArray();
+    }
+
+    private int squashNorth(){
+        int totalMerged = 0;
+
         for(int column = 0; column < size; column++){
-            // Strip zeros
-            int[] filteredColumn = Arrays.stream(slice(column)).filter((v) -> v > 0).toArray();
+            int[] filteredColumn = stripZeros(slice(column));
             if(filteredColumn.length == 0) continue;
 
-            int[] results = mergeAndReduce(filteredColumn, true);
+            totalMerged += merge(filteredColumn, true);
+            filteredColumn = stripZeros(filteredColumn);
             for(int row = 0; row < size; row++){
-                data[row][column] = row < results.length ? results[row] : 0;
+                data[row][column] = row < filteredColumn.length ? filteredColumn[row] : 0;
             }
         }
+
+        return totalMerged;
     }
 
-    private void squashEast(){
+    private int squashEast(){
+        int totalMerged = 0;
+
         for(int row = 0; row < size; row++){
             // Strip zeros
-            int[] filteredColumn = Arrays.stream(data[row]).filter((v) -> v > 0).toArray();
+            int[] filteredColumn = stripZeros(data[row]);
             if(filteredColumn.length == 0) continue;
 
-            int[] results = mergeAndReduce(filteredColumn, false);
-            for(int column = size-1, i=results.length-1; column >= 0; column--, i--){
-                data[row][column] = i >= 0 ? results[i] : 0;
+            totalMerged += merge(filteredColumn, false);
+            filteredColumn = stripZeros(filteredColumn);
+            for(int column = size-1, i=filteredColumn.length-1; column >= 0; column--, i--){
+                data[row][column] = i >= 0 ? filteredColumn[i] : 0;
             }
         }
+
+        return totalMerged;
     }
 
-    private void squashSouth(){
+    private int squashSouth(){
+        int totalMerged = 0;
+
         for(int column = 0; column < size; column++){
             // Strip zeros
-            int[] filteredColumn = Arrays.stream(slice(column)).filter((v) -> v > 0).toArray();
+            int[] filteredColumn = stripZeros(slice(column));
             if(filteredColumn.length == 0) continue;
 
-            int[] results = mergeAndReduce(filteredColumn, false);
-            for(int row = size-1, i = results.length-1; row >= 0; row--, i--){
-                data[row][column] = i >= 0 ? results[i] : 0;
+            totalMerged += merge(filteredColumn, false);
+            filteredColumn = stripZeros(filteredColumn);
+            for(int row = size-1, i = filteredColumn.length-1; row >= 0; row--, i--){
+                data[row][column] = i >= 0 ? filteredColumn[i] : 0;
             }
         }
+
+        return totalMerged;
     }
 
-    private void squashWest(){
+    private int squashWest(){
+        int totalMerged = 0;
+
         for(int row = 0; row < size; row++){
             // Strip zeros
-            int[] filteredColumn = Arrays.stream(data[row]).filter((v) -> v > 0).toArray();
+            int[] filteredColumn = stripZeros(data[row]);
             if(filteredColumn.length == 0) continue;
 
-            int[] results = mergeAndReduce(filteredColumn, true);
+            totalMerged += merge(filteredColumn, true);
+            filteredColumn = stripZeros(filteredColumn);
             for(int column = 0; column < size; column++){
-                data[row][column] = column < results.length ? results[column] : 0;
+                data[row][column] = column < filteredColumn.length ? filteredColumn[column] : 0;
             }
         }
+
+        return totalMerged;
     }
 
     /**

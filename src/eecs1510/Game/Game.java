@@ -16,8 +16,13 @@ public class Game {
     /** The game board associated with the current game */
     private Board gameBoard;
 
+    private boolean displayStats = true;
     private boolean lost = false;
     private boolean notifiedWon = false;
+
+    private int totalMoves = 0;
+    private int totalMerged = 0;
+    private int totalMergedThisTurn = 0;
 
     public static void main(String[] args){
         //TODO: Command-Line options
@@ -66,12 +71,17 @@ public class Game {
                 }else if(code==RESTART){
                     clearScreen();
                     gameBoard = new Board();
+                    totalMoves = totalMerged = 0;
                     continue;
                 }
 
                 try{
                     Direction d = Direction.parse(code);
-                    gameBoard.squash(d);
+                    totalMergedThisTurn = gameBoard.squash(d);
+                    totalMerged += totalMergedThisTurn;
+
+                    totalMoves++;
+
                     if(!gameBoard.placeRandom()){
                         lost = true;
                         doGameLost();
@@ -96,7 +106,8 @@ public class Game {
     }
 
     private void doVictory(){
-        System.out.println("You've won! The game is now in \"Endless Mode\", Try and get to 4096! Thank you for playing!");
+        System.out.println("You've won after " + totalMoves + "turns!\n" +
+                "The game is now in \"Endless Mode\", Try and get to 4096! Thank you for playing!");
     }
 
     private void doGameLost(){
@@ -104,7 +115,7 @@ public class Game {
             throw new IllegalStateException("Game is still going!");
         }
 
-        System.out.print("You Lost the Game!");
+        System.out.print("You Lost the Game after " + totalMoves + " turns!");
         System.exit(-1);
 
     }
@@ -138,9 +149,6 @@ public class Game {
      * Prints the game board
      */
     public void printBoard(){
-        
-        //TODO: Stats / Help menu?
-        
         int width = gameBoard.getSize();
         
         for(int row=0; row<width; row++){
@@ -160,7 +168,18 @@ public class Game {
                     System.out.print('\u2551');
                 }
             }
-            System.out.println('\u2551');
+            System.out.print('\u2551');
+
+            if(displayStats){
+                switch(row){
+                    case 0:  System.out.println("\t\tTotal Moves: " + totalMoves); break;
+                    case 1:  System.out.println("\t\tTotal Merged Cells: " + totalMerged); break;
+                    case 2:  System.out.println("\t\tTotal Merged This Turn: " + totalMergedThisTurn); break;
+                    default: System.out.println();
+                }
+            }else{
+                System.out.println();
+            }
 
             if(row+1 == width){
                 System.out.println(buildRowDivider(RowDividerType.BOTTOM));
