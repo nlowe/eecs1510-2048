@@ -1,5 +1,6 @@
 package eecs1510.Game;
 
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -26,11 +27,22 @@ public class Game {
 
     public static void main(String[] args){
         //TODO: Command-Line options
-        new Game().run();
+        try{
+            Game g = new Game();
+
+            g.run();
+        } catch(Randomizer.InvalidSeedException e) {
+            System.err.println("Unable to set seed");
+            e.printStackTrace();
+        }
     }
 
-    public Game(){
+    public Game() throws Randomizer.InvalidSeedException{
         gameBoard = new Board();
+    }
+
+    public Game(String seed) throws Randomizer.InvalidSeedException{
+        gameBoard = new Board(seed);
     }
 
     public void run(){
@@ -175,6 +187,7 @@ public class Game {
                     case 0:  System.out.println("\t\tTotal Moves: " + totalMoves); break;
                     case 1:  System.out.println("\t\tTotal Merged Cells: " + totalMerged); break;
                     case 2:  System.out.println("\t\tTotal Merged This Turn: " + totalMergedThisTurn); break;
+                    case 3:  System.out.println("\t\tSeed: " + gameBoard.getSeed().substring(0, 4) + " " + gameBoard.getSeed().substring(4, 8)); break;
                     default: System.out.println();
                 }
             }else{

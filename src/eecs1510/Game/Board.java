@@ -17,17 +17,27 @@ public class Board {
     /** Any random number above this will generate a four */
     public static final double FOUR_THRESHOLD = 0.4;
 
+    /** The seeded random number generator for this game board */
+    private final Randomizer rng;
+
     private final int size;
     private final int[][] data;
 
-    public Board(){
-        this(DEFAULT_SIZE);
+    public Board() throws Randomizer.InvalidSeedException{
+        this(DEFAULT_SIZE, Randomizer.randomSeed());
     }
 
-    public Board(int size){
+    public Board(String seed) throws Randomizer.InvalidSeedException{
+        this(DEFAULT_SIZE, seed);
+    }
+
+    public Board(int size, String seed) throws Randomizer.InvalidSeedException{
         this.size = size;
 
         data = new int[size][size];
+
+        rng = new Randomizer(seed.trim().replaceAll("\\s",""));
+
         placeRandom();
     }
 
@@ -37,6 +47,11 @@ public class Board {
     public int getSize(){
         return size;
     }
+
+    /**
+     * @return the Seed of the random number generator
+     */
+    public String getSeed(){ return rng.seed; }
 
     /**
      * Gets the element at the specified row and column
@@ -181,7 +196,7 @@ public class Board {
      * @return true if a value was able to be placed
      */
     public boolean placeRandom(){
-        int initialValue = Math.random() >= FOUR_THRESHOLD ? 4 : 2;
+        int initialValue = rng.next() >= FOUR_THRESHOLD ? 4 : 2;
 
         int[] freeRows = getFreeRows();
 
@@ -189,10 +204,10 @@ public class Board {
             return false;
         }
 
-        int freeRow = freeRows[(int)(Math.random() * freeRows.length)];
+        int freeRow = freeRows[(int)(rng.next() * freeRows.length)];
 
         int[] freeColumns = getFreeColumns(freeRow);
-        int freeColumn = getFreeColumns(freeRow)[(int)(Math.random() * freeColumns.length)];
+        int freeColumn = getFreeColumns(freeRow)[(int)(rng.next() * freeColumns.length)];
 
         System.out.println("Placing " + initialValue + " in " + freeRow + "," + freeColumn);
 
