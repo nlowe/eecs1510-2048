@@ -1,6 +1,5 @@
 package eecs1510.Game;
 
-import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -26,9 +25,23 @@ public class Game {
     private int totalMergedThisTurn = 0;
 
     public static void main(String[] args){
-        //TODO: Command-Line options
         try{
             Game g = new Game();
+
+            // TODO: --WASD for WASD/IJKL controls, otherwise ULDR
+            new OptionsParser().add("seed", ((s) -> {
+                try{
+                   g.changeSeed(s.replaceAll("^[\"\']+", "").replaceAll("[\"\']+$", "").replaceAll("\\s",""));
+                } catch(Randomizer.InvalidSeedException e) {
+                    e.printStackTrace();
+                }
+            })).add("size", (i) -> {
+                try{
+                    g.resize(Integer.parseInt(i));
+                } catch(Randomizer.InvalidSeedException e) {
+                    e.printStackTrace();
+                }
+            }).addSwitch("endless", (() -> g.notifiedWon = true)).parse(args);
 
             g.run();
         } catch(Randomizer.InvalidSeedException e) {
@@ -37,12 +50,30 @@ public class Game {
         }
     }
 
+
+
     public Game() throws Randomizer.InvalidSeedException{
         gameBoard = new Board();
     }
 
     public Game(String seed) throws Randomizer.InvalidSeedException{
         gameBoard = new Board(seed);
+    }
+
+    private void resize(int size) throws Randomizer.InvalidSeedException{
+        gameBoard = new Board(size, gameBoard.getSeed());
+    }
+
+    private void changeSeed(String seed) throws Randomizer.InvalidSeedException{
+        gameBoard = new Board(gameBoard.getSize(), seed);
+
+        resetStats();
+    }
+
+    private void resetStats(){
+        totalMoves = totalMerged = 0;
+        lost = false;
+        notifiedWon = false;
     }
 
     public void run(){
@@ -65,7 +96,7 @@ public class Game {
                 }
 
                 // Prompt for and read the next key
-                System.out.print("2048 (h for help)> ");
+                System.out.print((notifiedWon ? "[ENDLESS] " : "") + "2048 (h for help)> ");
                 String input = s.next().toLowerCase();
                 char code = input.charAt(0);
 
@@ -83,7 +114,7 @@ public class Game {
                 }else if(code==RESTART){
                     clearScreen();
                     gameBoard = new Board();
-                    totalMoves = totalMerged = 0;
+                    resetStats();
                     continue;
                 }
 

@@ -36,8 +36,9 @@ public class Board {
 
         data = new int[size][size];
 
-        rng = new Randomizer(seed.trim().replaceAll("\\s",""));
+        rng = new Randomizer(seed.trim().replaceAll("\\s", ""));
 
+        placeRandom();
         placeRandom();
     }
 
