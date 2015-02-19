@@ -25,18 +25,18 @@ public class Game {
     private int totalMerged = 0;
     private int totalMergedThisTurn = 0;
 
-    public static void main(String[] args){
-        try{
+    public static void main(String[] args) {
+        try {
             Game g = new Game();
 
             new OptionsParser().add("seed", ((s) -> {
-                try{
-                   g.changeSeed(s.replaceAll("^[\"\']+", "").replaceAll("[\"\']+$", "").replaceAll("\\s",""));
+                try {
+                    g.changeSeed(s.replaceAll("^[\"\']+", "").replaceAll("[\"\']+$", "").replaceAll("\\s", ""));
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
                 }
             })).add("size", (i) -> {
-                try{
+                try {
                     g.resize(Integer.parseInt(i));
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
@@ -53,38 +53,39 @@ public class Game {
     }
 
 
-
-    public Game() throws Randomizer.InvalidSeedException{
+    public Game() throws Randomizer.InvalidSeedException {
         gameBoard = new Board();
     }
 
-    public Game(String seed) throws Randomizer.InvalidSeedException{
+    public Game(String seed) throws Randomizer.InvalidSeedException {
         gameBoard = new Board(seed);
     }
 
-    private void resize(int size) throws Randomizer.InvalidSeedException{
+    private void resize(int size) throws Randomizer.InvalidSeedException {
         gameBoard = new Board(size, gameBoard.getSeed());
+
+        resetStats();
     }
 
-    private void changeSeed(String seed) throws Randomizer.InvalidSeedException{
+    private void changeSeed(String seed) throws Randomizer.InvalidSeedException {
         gameBoard = new Board(gameBoard.getSize(), seed);
 
         resetStats();
     }
 
-    private void resetStats(){
+    private void resetStats() {
         totalMoves = totalMerged = 0;
         lost = false;
         notifiedWon = false;
     }
 
-    public void run(){
-        try(Scanner s = new Scanner(System.in)){
+    public void run() {
+        try(Scanner s = new Scanner(System.in)) {
 
             // If we run into a problem, store the message here and warn the user the next cycle
             String warning = "";
 
-            while(!lost){
+            while(!lost) {
                 // Clear Screen on compatible terminals
                 clearScreen();
 
@@ -92,7 +93,7 @@ public class Game {
                 System.out.println("");
 
                 // Print a warning if we have one
-                if(!warning.isEmpty()){
+                if (!warning.isEmpty()) {
                     System.out.println(warning);
                     warning = "";
                 }
@@ -102,31 +103,31 @@ public class Game {
                 String input = s.next().toLowerCase();
                 char code = input.charAt(0);
 
-                if(input.length() > 1) {
+                if (input.length() > 1) {
                     warning += "WARNING: More than one character entered. Ignoring everything except the first\n";
                 }
 
-                if(code == QUIT){
+                if (code == QUIT) {
                     break;
-                }else if(code==HELP){
+                } else if (code == HELP) {
                     clearScreen();
-                    printHelp();
+                    printInGameHelp();
                     s.next();
                     continue;
-                }else if(code==RESTART){
+                } else if (code == RESTART) {
                     clearScreen();
                     gameBoard = new Board();
                     resetStats();
                     continue;
                 }
 
-                try{
+                try {
                     Direction d = Direction.parse(code);
                     MoveResult turn = gameBoard.squash(d);
 
                     totalMergedThisTurn = turn.mergeCount;
 
-                    if(totalMergedThisTurn < 0){
+                    if (totalMergedThisTurn < 0) {
                         //We've tried to move in an invalid direction
                         totalMergedThisTurn = 0;
                         warning += "Invalid Move, try again!";
@@ -138,36 +139,36 @@ public class Game {
 
                     totalMoves++;
 
-                    if(!gameBoard.placeRandom()){
+                    if (!gameBoard.placeRandom()) {
                         lost = true;
-                        doGameLost();
+                        printLostNotification();
                     }
 
-                    if(!notifiedWon){
-                        if(gameBoard.isWon()){
-                            doVictory();
+                    if (!notifiedWon) {
+                        if (gameBoard.isWon()) {
+                            printVictoryNotification();
                             s.next();
                             notifiedWon = true;
                         }
                     }
-                }catch(IllegalArgumentException e){
+                } catch(IllegalArgumentException e) {
                     warning += "WARNING: " + e.getMessage() + "\n";
                 }
             }
-        }catch(Exception e){
+        } catch(Exception e) {
             System.err.println("Something went wrong!: " + e.getMessage());
             e.printStackTrace();
         }
 
     }
 
-    private void doVictory(){
+    private void printVictoryNotification() {
         System.out.println("You've won after " + totalMoves + "turns!\n" +
                 "The game is now in \"Endless Mode\", Try and get to 4096! Thank you for playing!");
     }
 
-    private void doGameLost(){
-        if(!lost){
+    private void printLostNotification() {
+        if (!lost) {
             throw new IllegalStateException("Game is still going!");
         }
 
@@ -179,7 +180,7 @@ public class Game {
     /**
      * Clears the screen on most compatible terminals
      */
-    private void clearScreen(){
+    private void clearScreen() {
         System.out.print("\u001b[2J");
         System.out.flush();
     }
@@ -187,7 +188,7 @@ public class Game {
     /**
      * Prints the help menu
      */
-    public void printHelp(){
+    public void printInGameHelp() {
         System.out.println("2048 (A clone of \"3's\"), Developed by Nathan Lowe for EECS 1510\n");
         System.out.println("Squash tiles in one of four directions. Tiles that match will be merged, tiles closest to the destination will be merged first!");
         System.out.println("Keys:");
@@ -204,47 +205,56 @@ public class Game {
     /**
      * Prints the game board
      */
-    public void printBoard(){
+    public void printBoard() {
         int width = gameBoard.getSize();
-        
-        for(int row=0; row<width; row++){
-            if(row == 0){
+
+        for (int row = 0; row < width; row++) {
+            if (row == 0) {
                 System.out.println(buildRowDivider(RowDividerType.TOP));
-            }else{
+            } else {
                 System.out.println(buildRowDivider(RowDividerType.INTERMEDIATE));
             }
 
             System.out.print('\u2551');
-            for(int column=0; column < width; column++){
-                int element = gameBoard.getElement(row,column);
+            for (int column = 0; column < width; column++) {
+                int element = gameBoard.getElement(row, column);
                 //TODO: Don't do fixed column sizes. Once the game goes into endless mode
                 //TODO: some columns have the potential to be more than 4 digits
                 System.out.print(element > 0 ? String.format(" %4d ", element) : "      ");
-                if(column < width-1){
+                if (column < width - 1) {
                     System.out.print('\u2551');
                 }
             }
             System.out.print('\u2551');
 
-            if(displayStats){
-                switch(row){
-                    case 0:  System.out.println("\t\tScore: " + score + "\tTotal Moves: " + totalMoves); break;
-                    case 1:  System.out.println("\t\tTotal Merged Cells: " + totalMerged); break;
-                    case 2:  System.out.println("\t\tTotal Merged This Turn: " + totalMergedThisTurn); break;
-                    case 3:  System.out.println("\t\tSeed: " + gameBoard.getSeed().substring(0, 4) + " " + gameBoard.getSeed().substring(4, 8)); break;
-                    default: System.out.println();
+            if (displayStats) {
+                switch(row) {
+                    case 0:
+                        System.out.println("\t\tScore: " + score + "\tTotal Moves: " + totalMoves);
+                        break;
+                    case 1:
+                        System.out.println("\t\tTotal Merged Cells: " + totalMerged);
+                        break;
+                    case 2:
+                        System.out.println("\t\tTotal Merged This Turn: " + totalMergedThisTurn);
+                        break;
+                    case 3:
+                        System.out.println("\t\tSeed: " + gameBoard.getSeed().substring(0, 4) + " " + gameBoard.getSeed().substring(4, 8));
+                        break;
+                    default:
+                        System.out.println();
                 }
-            }else{
+            } else {
                 System.out.println();
             }
 
-            if(row+1 == width){
+            if (row + 1 == width) {
                 System.out.println(buildRowDivider(RowDividerType.BOTTOM));
             }
         }
     }
-    
-    public enum RowDividerType{
+
+    public enum RowDividerType {
         TOP,
         INTERMEDIATE,
         BOTTOM
@@ -256,23 +266,22 @@ public class Game {
      * @param t the Type of divider to generate
      * @return
      */
-    public String buildRowDivider(RowDividerType t){
+    public String buildRowDivider(RowDividerType t) {
         StringBuilder topRow = new StringBuilder();
         topRow.append(t == RowDividerType.TOP ? '\u2554' : t == RowDividerType.INTERMEDIATE ? '\u2560' : '\u255A');
-        
+
         int width = gameBoard.getSize();
-        
-        for(int i=0; i<width; i++){
+
+        for (int i = 0; i < width; i++) {
             topRow.append("\u2550\u2550\u2550\u2550\u2550\u2550");
-            if(i<width-1){
+            if (i < width - 1) {
                 topRow.append(t == RowDividerType.TOP ? '\u2566' : t == RowDividerType.INTERMEDIATE ? '\u256C' : '\u2569');
             }
         }
 
         topRow.append(t == RowDividerType.TOP ? '\u2557' : t == RowDividerType.INTERMEDIATE ? '\u2563' : '\u255D');
-        
+
         return topRow.toString();
     }
-    
 
 }

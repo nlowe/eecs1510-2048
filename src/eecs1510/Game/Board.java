@@ -23,15 +23,15 @@ public class Board {
     private final int size;
     private final int[][] data;
 
-    public Board() throws Randomizer.InvalidSeedException{
+    public Board() throws Randomizer.InvalidSeedException {
         this(DEFAULT_SIZE, Randomizer.randomSeed());
     }
 
-    public Board(String seed) throws Randomizer.InvalidSeedException{
+    public Board(String seed) throws Randomizer.InvalidSeedException {
         this(DEFAULT_SIZE, seed);
     }
 
-    public Board(int size, String seed) throws Randomizer.InvalidSeedException{
+    public Board(int size, String seed) throws Randomizer.InvalidSeedException {
         this.size = size;
 
         data = new int[size][size];
@@ -45,14 +45,16 @@ public class Board {
     /**
      * @return the Size of the game board (which is square)
      */
-    public int getSize(){
+    public int getSize() {
         return size;
     }
 
     /**
      * @return the Seed of the random number generator
      */
-    public String getSeed(){ return rng.seed; }
+    public String getSeed() {
+        return rng.seed;
+    }
 
     /**
      * Gets the element at the specified row and column
@@ -61,7 +63,7 @@ public class Board {
      * @param column
      * @return
      */
-    public int getElement(int row, int column){
+    public int getElement(int row, int column) {
         return data[row][column];
     }
 
@@ -76,7 +78,7 @@ public class Board {
      * @param d The direction to squash elements in
      * @return The total number of squashed tiles or -1 if the move was invalid
      */
-    public MoveResult squash(Direction d){
+    public MoveResult squash(Direction d) {
         System.out.println("Trying to squash " + d);
         switch(d){
             case NORTH:{ return squashNorth(); }
@@ -91,27 +93,27 @@ public class Board {
      * Merges like items in the specified direction
      *
      * @param source The row or column-slice to merge
-     * @param LTR The direction to merge in
+     * @param LTR    The direction to merge in
      * @return the total number of merged elements
      */
-    private MoveResult merge(int[] source, boolean LTR){
+    private MoveResult merge(int[] source, boolean LTR) {
         int totalMerged = 0;
         int totalMergedValue = 0;
 
-        if(LTR){
-            for(int i=0; i<source.length-1; i++){
-                if(source[i] == source[i+1]){
+        if (LTR) {
+            for (int i = 0; i < source.length - 1; i++) {
+                if (source[i] == source[i + 1]) {
                     source[i] *= 2;
-                    source[i+1] = 0;
+                    source[i + 1] = 0;
                     totalMerged++;
                     totalMergedValue += source[i];
                 }
             }
-        }else{
-            for(int i=source.length-1; i >= 1; i--){
-                if(source[i] == source[i-1]){
+        } else {
+            for (int i = source.length - 1; i >= 1; i--) {
+                if (source[i] == source[i - 1]) {
                     source[i] *= 2;
-                    source[i-1] = 0;
+                    source[i - 1] = 0;
                     totalMerged++;
                     totalMergedValue += source[i];
                 }
@@ -125,133 +127,133 @@ public class Board {
      * @param arr
      * @return a filtered array of the source <code>arr</code> with all zeros removed
      */
-    private int[] stripZeros(int[] arr){
+    private int[] stripZeros(int[] arr) {
         return Arrays.stream(arr).filter((v) -> v > 0).toArray();
     }
 
-    private MoveResult squashNorth(){
+    private MoveResult squashNorth() {
         int totalMerged = 0;
         int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
-        for(int column = 0; column < size; column++){
+        for (int column = 0; column < size; column++) {
             int[] filteredColumn = stripZeros(slice(column));
-            if(filteredColumn.length == 0) continue;
+            if (filteredColumn.length == 0) continue;
 
             MoveResult partial = merge(filteredColumn, true);
             totalMerged += partial.mergeCount;
             totalMergedValue += partial.mergeValue;
 
             filteredColumn = stripZeros(filteredColumn);
-            for(int row = 0; row < size; row++){
+            for (int row = 0; row < size; row++) {
                 newState[row][column] = row < filteredColumn.length ? filteredColumn[row] : 0;
             }
         }
 
         // if the new state is the same as the current state, then the move is invalid
-        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+        if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
-        }else{
+        } else {
             setState(newState);
         }
 
         return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private MoveResult squashEast(){
+    private MoveResult squashEast() {
         int totalMerged = 0;
         int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
-        for(int row = 0; row < size; row++){
+        for (int row = 0; row < size; row++) {
             // Strip zeros
             int[] filteredColumn = stripZeros(data[row]);
-            if(filteredColumn.length == 0) continue;
+            if (filteredColumn.length == 0) continue;
 
             MoveResult partial = merge(filteredColumn, false);
             totalMerged += partial.mergeCount;
             totalMergedValue += partial.mergeValue;
 
             filteredColumn = stripZeros(filteredColumn);
-            for(int column = size-1, i=filteredColumn.length-1; column >= 0; column--, i--){
+            for (int column = size - 1, i = filteredColumn.length - 1; column >= 0; column--, i--) {
                 newState[row][column] = i >= 0 ? filteredColumn[i] : 0;
             }
         }
 
         // if the new state is the same as the current state, then the move is invalid
-        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+        if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
-        }else{
+        } else {
             setState(newState);
         }
 
         return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private MoveResult squashSouth(){
+    private MoveResult squashSouth() {
         int totalMerged = 0;
         int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
-        for(int column = 0; column < size; column++){
+        for (int column = 0; column < size; column++) {
             // Strip zeros
             int[] filteredColumn = stripZeros(slice(column));
-            if(filteredColumn.length == 0) continue;
+            if (filteredColumn.length == 0) continue;
 
             MoveResult partial = merge(filteredColumn, false);
             totalMerged += partial.mergeCount;
             totalMergedValue += partial.mergeValue;
 
             filteredColumn = stripZeros(filteredColumn);
-            for(int row = size-1, i = filteredColumn.length-1; row >= 0; row--, i--){
+            for (int row = size - 1, i = filteredColumn.length - 1; row >= 0; row--, i--) {
                 newState[row][column] = i >= 0 ? filteredColumn[i] : 0;
             }
         }
 
         // if the new state is the same as the current state, then the move is invalid
-        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+        if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
-        }else{
+        } else {
             setState(newState);
         }
 
         return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private MoveResult squashWest(){
+    private MoveResult squashWest() {
         int totalMerged = 0;
         int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
-        for(int row = 0; row < size; row++){
+        for (int row = 0; row < size; row++) {
             // Strip zeros
             int[] filteredColumn = stripZeros(data[row]);
-            if(filteredColumn.length == 0) continue;
+            if (filteredColumn.length == 0) continue;
 
             MoveResult partial = merge(filteredColumn, true);
             totalMerged += partial.mergeCount;
             totalMergedValue += partial.mergeValue;
 
             filteredColumn = stripZeros(filteredColumn);
-            for(int column = 0; column < size; column++){
+            for (int column = 0; column < size; column++) {
                 newState[row][column] = column < filteredColumn.length ? filteredColumn[column] : 0;
             }
         }
 
         // if the new state is the same as the current state, then the move is invalid
-        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+        if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
-        }else{
+        } else {
             setState(newState);
         }
 
         return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private void setState(int[][] s){
+    private void setState(int[][] s) {
         //TODO: Validate input
 
-        for(int i=0; i<size; i++){
+        for (int i = 0; i < size; i++) {
             System.arraycopy(s[i], 0, data[i], 0, size);
         }
     }
@@ -262,23 +264,23 @@ public class Board {
      *
      * @return true if a value was able to be placed
      */
-    public boolean placeRandom(){
+    public boolean placeRandom() {
         int initialValue = rng.next() >= FOUR_THRESHOLD ? 4 : 2;
 
         int[] freeRows = getFreeRows();
 
-        if(freeRows.length == 0){
+        if (freeRows.length == 0) {
             return false;
         }
 
-        int freeRow = freeRows[(int)(rng.next() * freeRows.length)];
+        int freeRow = freeRows[(int) (rng.next() * freeRows.length)];
 
         int[] freeColumns = getFreeColumns(freeRow);
-        int freeColumn = getFreeColumns(freeRow)[(int)(rng.next() * freeColumns.length)];
+        int freeColumn = getFreeColumns(freeRow)[(int) (rng.next() * freeColumns.length)];
 
         System.out.println("Placing " + initialValue + " in " + freeRow + "," + freeColumn);
 
-        assert(data[freeRow][freeColumn] == 0);
+        assert (data[freeRow][freeColumn] == 0);
         data[freeRow][freeColumn] = initialValue;
 
         return true;
@@ -289,12 +291,12 @@ public class Board {
      *
      * @return An array of indices pointing to rows with free cells
      */
-    public int[] getFreeRows(){
+    public int[] getFreeRows() {
         ArrayList<Integer> rows = new ArrayList<>();
 
-        for(int i=0; i<size; i++){
-            for(int j=0; j<size; j++){
-                if(data[i][j] <= 0){
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (data[i][j] <= 0) {
                     rows.add(i);
                     break;
                 }
@@ -302,7 +304,7 @@ public class Board {
         }
 
         int[] results = new int[rows.size()];
-        for(int i=0; i<rows.size(); i++){
+        for (int i = 0; i < rows.size(); i++) {
             results[i] = rows.get(i);
         }
 
@@ -313,20 +315,19 @@ public class Board {
      * Determines what columns in a given row have free cells
      *
      * @param row The index of the row to check
-     *
      * @return An array of indices pointing to free columns in a given row
      */
-    public int[] getFreeColumns(int row){
+    public int[] getFreeColumns(int row) {
         ArrayList<Integer> columns = new ArrayList<>();
 
-        for(int j=0; j<size; j++){
-            if(data[row][j] <= 0){
+        for (int j = 0; j < size; j++) {
+            if (data[row][j] <= 0) {
                 columns.add(j);
             }
         }
 
         int[] results = new int[columns.size()];
-        for(int i=0; i<columns.size(); i++){
+        for (int i = 0; i < columns.size(); i++) {
             results[i] = columns.get(i);
         }
 
@@ -337,13 +338,12 @@ public class Board {
      * Extract a vertical slice from the board at a given column
      *
      * @param column The column to slice
-     *
      * @return a vertical slice of the board at the specified column
      */
-    private int[] slice(int column){
+    private int[] slice(int column) {
         int[] result = new int[size];
 
-        for(int i=0; i<size; i++){
+        for (int i = 0; i < size; i++) {
             result[i] = data[i][column];
         }
 
@@ -355,7 +355,7 @@ public class Board {
      *
      * @return true iff the board contains a cell with the value <code>WIN_CONDITION_VALUE</code>
      */
-    public boolean isWon(){
+    public boolean isWon() {
         //We're using Java 8, might as well make use of streams
         return Arrays.stream(data).flatMapToInt(Arrays::stream).max().getAsInt() >= WIN_CONDITION_VALUE;
     }
