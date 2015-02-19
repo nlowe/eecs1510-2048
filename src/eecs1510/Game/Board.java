@@ -15,7 +15,7 @@ public class Board {
     /** What value determines when the game has been "won" */
     public static final int WIN_CONDITION_VALUE = 2048;
     /** Any random number above this will generate a four */
-    public static final double FOUR_THRESHOLD = 0.4;
+    public static final double FOUR_THRESHOLD = 0.9;
 
     /** The seeded random number generator for this game board */
     private final Randomizer rng;
