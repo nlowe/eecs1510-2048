@@ -1,0 +1,21 @@
+apply plugin:'java'
+
+sourceCompatibility = 1.8
+version = '1.0'
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src/'
+		}
+	}
+}
+
+jar {
+	destinationDir file('.')
+	manifest {
+		attributes 'Implementation-Title': 'EECS1510 2048 Game',
+			   'Implementation-Version': version,
+			   'Main-Class': 'eecs1510.Game.Game'
+	}
+}
