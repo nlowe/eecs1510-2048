@@ -12,10 +12,12 @@ public enum Direction {
     EAST,
     WEST;
 
-    private static final char[] NORTH_CHARS = {'w', 'i'};
-    private static final char[] SOUTH_CHARS = {'s', 'k'};
-    private static final char[] EAST_CHARS  = {'d', 'l'};
-    private static final char[] WEST_CHARS  = {'a', 'j'};
+    private static boolean legacyInput = true;
+
+    private static final char[][] NORTH_CHARS = {{'u'},{'w', 'i'}};
+    private static final char[][] SOUTH_CHARS = {{'d'},{'s', 'k'}};
+    private static final char[][] EAST_CHARS  = {{'r'},{'d', 'l'}};
+    private static final char[][] WEST_CHARS  = {{'l'},{'a', 'j'}};
 
     /**
      * For a given character, returns a direction vector corresponding to that character
@@ -26,30 +28,34 @@ public enum Direction {
      */
     public static Direction parse(char c) throws IllegalArgumentException{
 
-        for(char d : NORTH_CHARS){
+        for(char d : NORTH_CHARS[legacyInput ? 0 : 1]){
             if(c == d){
                 return NORTH;
             }
         }
 
-        for(char d : SOUTH_CHARS){
+        for(char d : SOUTH_CHARS[legacyInput ? 0 : 1]){
             if(c == d){
                 return SOUTH;
             }
         }
 
-        for(char d : EAST_CHARS){
+        for(char d : EAST_CHARS[legacyInput ? 0 : 1]){
             if(c == d){
                 return EAST;
             }
         }
 
-        for(char d : WEST_CHARS){
+        for(char d : WEST_CHARS[legacyInput ? 0 : 1]){
             if(c == d){
                 return WEST;
             }
         }
 
         throw new IllegalArgumentException("Unknown Direction for code " + c);
+    }
+
+    public static void useLegacyInput(boolean b){
+        legacyInput = b;
     }
 }

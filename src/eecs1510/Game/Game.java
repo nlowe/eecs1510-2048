@@ -5,7 +5,7 @@ import java.util.Scanner;
 /**
  * Created by nathan on 2/12/15
  *
- * A clone of the game 2048 (which is itself a clone of the game "3's" for EECS 1510
+ * A clone of the game 2048 (which is itself a clone of the game "3's") for EECS 1510
  */
 public class Game {
 
@@ -29,7 +29,6 @@ public class Game {
         try{
             Game g = new Game();
 
-            // TODO: --WASD for WASD/IJKL controls, otherwise ULDR
             new OptionsParser().add("seed", ((s) -> {
                 try{
                    g.changeSeed(s.replaceAll("^[\"\']+", "").replaceAll("[\"\']+$", "").replaceAll("\\s",""));
@@ -42,7 +41,9 @@ public class Game {
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
                 }
-            }).addSwitch("endless", (() -> g.notifiedWon = true)).parse(args);
+            }).addSwitch("endless", (() -> g.notifiedWon = true))
+                    .addSwitch("WASD", () -> Direction.useLegacyInput(false))
+                    .addSwitch("noStats", () -> g.displayStats = false).parse(args);
 
             g.run();
         } catch(Randomizer.InvalidSeedException e) {

@@ -90,8 +90,8 @@ public class Board {
     /**
      * Merges like items in the specified direction
      *
-     * @param source
-     * @param LTR
+     * @param source The row or column-slice to merge
+     * @param LTR The direction to merge in
      * @return the total number of merged elements
      */
     private MoveResult merge(int[] source, boolean LTR){
@@ -356,7 +356,7 @@ public class Board {
      * @return true iff the board contains a cell with the value <code>WIN_CONDITION_VALUE</code>
      */
     public boolean isWon(){
-        //We're using Java 8, might as well make use of it
+        //We're using Java 8, might as well make use of streams
         return Arrays.stream(data).flatMapToInt(Arrays::stream).max().getAsInt() >= WIN_CONDITION_VALUE;
     }
 }
