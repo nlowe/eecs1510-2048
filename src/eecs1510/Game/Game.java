@@ -121,6 +121,14 @@ public class Game {
                 try{
                     Direction d = Direction.parse(code);
                     totalMergedThisTurn = gameBoard.squash(d);
+
+                    if(totalMergedThisTurn < 0){
+                        //We've tried to move in an invalid direction
+                        totalMergedThisTurn = 0;
+                        warning += "Invalid Move, try again!";
+                        continue;
+                    }
+
                     totalMerged += totalMergedThisTurn;
 
                     totalMoves++;

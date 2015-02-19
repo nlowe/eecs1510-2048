@@ -70,11 +70,14 @@ public class Board {
      * generate a random tile and add it to the game board. For that, you need
      * to call <code>placeRandom()</code>
      *
+     * A move is considered invalid if all cells are aligned against the border
+     * in which you are trying to merge AND no cells can be merged.
+     *
      * @param d The direction to squash elements in
-     * @return The total number of squashed tiles
+     * @return The total number of squashed tiles or -1 if the move was invalid
      */
     public int squash(Direction d){
-        System.out.println("Squashing " + d);
+        System.out.println("Trying to squash " + d);
         switch(d){
             case NORTH:{ return squashNorth(); }
             case SOUTH:{ return squashSouth(); }
@@ -115,12 +118,17 @@ public class Board {
         return totalMerged;
     }
 
+    /**
+     * @param arr
+     * @return a filtered array of the source <code>arr</code> with all zeros removed
+     */
     private int[] stripZeros(int[] arr){
         return Arrays.stream(arr).filter((v) -> v > 0).toArray();
     }
 
     private int squashNorth(){
         int totalMerged = 0;
+        int[][] newState = new int[size][size];
 
         for(int column = 0; column < size; column++){
             int[] filteredColumn = stripZeros(slice(column));
@@ -129,8 +137,15 @@ public class Board {
             totalMerged += merge(filteredColumn, true);
             filteredColumn = stripZeros(filteredColumn);
             for(int row = 0; row < size; row++){
-                data[row][column] = row < filteredColumn.length ? filteredColumn[row] : 0;
+                newState[row][column] = row < filteredColumn.length ? filteredColumn[row] : 0;
             }
+        }
+
+        // if the new state is the same as the current state, then the move is invalid
+        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+            return -1;
+        }else{
+            setState(newState);
         }
 
         return totalMerged;
@@ -138,6 +153,7 @@ public class Board {
 
     private int squashEast(){
         int totalMerged = 0;
+        int[][] newState = new int[size][size];
 
         for(int row = 0; row < size; row++){
             // Strip zeros
@@ -147,8 +163,15 @@ public class Board {
             totalMerged += merge(filteredColumn, false);
             filteredColumn = stripZeros(filteredColumn);
             for(int column = size-1, i=filteredColumn.length-1; column >= 0; column--, i--){
-                data[row][column] = i >= 0 ? filteredColumn[i] : 0;
+                newState[row][column] = i >= 0 ? filteredColumn[i] : 0;
             }
+        }
+
+        // if the new state is the same as the current state, then the move is invalid
+        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+            return -1;
+        }else{
+            setState(newState);
         }
 
         return totalMerged;
@@ -156,6 +179,7 @@ public class Board {
 
     private int squashSouth(){
         int totalMerged = 0;
+        int[][] newState = new int[size][size];
 
         for(int column = 0; column < size; column++){
             // Strip zeros
@@ -165,8 +189,15 @@ public class Board {
             totalMerged += merge(filteredColumn, false);
             filteredColumn = stripZeros(filteredColumn);
             for(int row = size-1, i = filteredColumn.length-1; row >= 0; row--, i--){
-                data[row][column] = i >= 0 ? filteredColumn[i] : 0;
+                newState[row][column] = i >= 0 ? filteredColumn[i] : 0;
             }
+        }
+
+        // if the new state is the same as the current state, then the move is invalid
+        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+            return -1;
+        }else{
+            setState(newState);
         }
 
         return totalMerged;
@@ -174,6 +205,7 @@ public class Board {
 
     private int squashWest(){
         int totalMerged = 0;
+        int[][] newState = new int[size][size];
 
         for(int row = 0; row < size; row++){
             // Strip zeros
@@ -183,11 +215,26 @@ public class Board {
             totalMerged += merge(filteredColumn, true);
             filteredColumn = stripZeros(filteredColumn);
             for(int column = 0; column < size; column++){
-                data[row][column] = column < filteredColumn.length ? filteredColumn[column] : 0;
+                newState[row][column] = column < filteredColumn.length ? filteredColumn[column] : 0;
             }
         }
 
+        // if the new state is the same as the current state, then the move is invalid
+        if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
+            return -1;
+        }else{
+            setState(newState);
+        }
+
         return totalMerged;
+    }
+
+    private void setState(int[][] s){
+        //TODO: Validate input
+
+        for(int i=0; i<size; i++){
+            System.arraycopy(s[i], 0, data[i], 0, size);
+        }
     }
 
     /**
