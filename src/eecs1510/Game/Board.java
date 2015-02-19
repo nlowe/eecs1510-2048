@@ -76,14 +76,14 @@ public class Board {
      * @param d The direction to squash elements in
      * @return The total number of squashed tiles or -1 if the move was invalid
      */
-    public int squash(Direction d){
+    public MoveResult squash(Direction d){
         System.out.println("Trying to squash " + d);
         switch(d){
             case NORTH:{ return squashNorth(); }
             case SOUTH:{ return squashSouth(); }
             case EAST: { return squashEast();  }
             case WEST: { return squashWest();  }
-            default: return 0;
+            default: return MoveResult.invalid();
         }
     }
 
@@ -94,8 +94,9 @@ public class Board {
      * @param LTR
      * @return the total number of merged elements
      */
-    private int merge(int[] source, boolean LTR){
+    private MoveResult merge(int[] source, boolean LTR){
         int totalMerged = 0;
+        int totalMergedValue = 0;
 
         if(LTR){
             for(int i=0; i<source.length-1; i++){
@@ -103,6 +104,7 @@ public class Board {
                     source[i] *= 2;
                     source[i+1] = 0;
                     totalMerged++;
+                    totalMergedValue += source[i];
                 }
             }
         }else{
@@ -111,11 +113,12 @@ public class Board {
                     source[i] *= 2;
                     source[i-1] = 0;
                     totalMerged++;
+                    totalMergedValue += source[i];
                 }
             }
         }
 
-        return totalMerged;
+        return new MoveResult(totalMerged, totalMergedValue);
     }
 
     /**
@@ -126,15 +129,19 @@ public class Board {
         return Arrays.stream(arr).filter((v) -> v > 0).toArray();
     }
 
-    private int squashNorth(){
+    private MoveResult squashNorth(){
         int totalMerged = 0;
+        int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
         for(int column = 0; column < size; column++){
             int[] filteredColumn = stripZeros(slice(column));
             if(filteredColumn.length == 0) continue;
 
-            totalMerged += merge(filteredColumn, true);
+            MoveResult partial = merge(filteredColumn, true);
+            totalMerged += partial.mergeCount;
+            totalMergedValue += partial.mergeValue;
+
             filteredColumn = stripZeros(filteredColumn);
             for(int row = 0; row < size; row++){
                 newState[row][column] = row < filteredColumn.length ? filteredColumn[row] : 0;
@@ -143,16 +150,17 @@ public class Board {
 
         // if the new state is the same as the current state, then the move is invalid
         if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
-            return -1;
+            return MoveResult.invalid();
         }else{
             setState(newState);
         }
 
-        return totalMerged;
+        return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private int squashEast(){
+    private MoveResult squashEast(){
         int totalMerged = 0;
+        int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
         for(int row = 0; row < size; row++){
@@ -160,7 +168,10 @@ public class Board {
             int[] filteredColumn = stripZeros(data[row]);
             if(filteredColumn.length == 0) continue;
 
-            totalMerged += merge(filteredColumn, false);
+            MoveResult partial = merge(filteredColumn, false);
+            totalMerged += partial.mergeCount;
+            totalMergedValue += partial.mergeValue;
+
             filteredColumn = stripZeros(filteredColumn);
             for(int column = size-1, i=filteredColumn.length-1; column >= 0; column--, i--){
                 newState[row][column] = i >= 0 ? filteredColumn[i] : 0;
@@ -169,16 +180,17 @@ public class Board {
 
         // if the new state is the same as the current state, then the move is invalid
         if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
-            return -1;
+            return MoveResult.invalid();
         }else{
             setState(newState);
         }
 
-        return totalMerged;
+        return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private int squashSouth(){
+    private MoveResult squashSouth(){
         int totalMerged = 0;
+        int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
         for(int column = 0; column < size; column++){
@@ -186,7 +198,10 @@ public class Board {
             int[] filteredColumn = stripZeros(slice(column));
             if(filteredColumn.length == 0) continue;
 
-            totalMerged += merge(filteredColumn, false);
+            MoveResult partial = merge(filteredColumn, false);
+            totalMerged += partial.mergeCount;
+            totalMergedValue += partial.mergeValue;
+
             filteredColumn = stripZeros(filteredColumn);
             for(int row = size-1, i = filteredColumn.length-1; row >= 0; row--, i--){
                 newState[row][column] = i >= 0 ? filteredColumn[i] : 0;
@@ -195,16 +210,17 @@ public class Board {
 
         // if the new state is the same as the current state, then the move is invalid
         if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
-            return -1;
+            return MoveResult.invalid();
         }else{
             setState(newState);
         }
 
-        return totalMerged;
+        return new MoveResult(totalMerged, totalMergedValue);
     }
 
-    private int squashWest(){
+    private MoveResult squashWest(){
         int totalMerged = 0;
+        int totalMergedValue = 0;
         int[][] newState = new int[size][size];
 
         for(int row = 0; row < size; row++){
@@ -212,7 +228,10 @@ public class Board {
             int[] filteredColumn = stripZeros(data[row]);
             if(filteredColumn.length == 0) continue;
 
-            totalMerged += merge(filteredColumn, true);
+            MoveResult partial = merge(filteredColumn, true);
+            totalMerged += partial.mergeCount;
+            totalMergedValue += partial.mergeValue;
+
             filteredColumn = stripZeros(filteredColumn);
             for(int column = 0; column < size; column++){
                 newState[row][column] = column < filteredColumn.length ? filteredColumn[column] : 0;
@@ -221,12 +240,12 @@ public class Board {
 
         // if the new state is the same as the current state, then the move is invalid
         if(totalMerged == 0 && Arrays.deepEquals(data, newState)){
-            return -1;
+            return MoveResult.invalid();
         }else{
             setState(newState);
         }
 
-        return totalMerged;
+        return new MoveResult(totalMerged, totalMergedValue);
     }
 
     private void setState(int[][] s){

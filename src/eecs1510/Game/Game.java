@@ -20,6 +20,7 @@ public class Game {
     private boolean lost = false;
     private boolean notifiedWon = false;
 
+    private int score = 0;
     private int totalMoves = 0;
     private int totalMerged = 0;
     private int totalMergedThisTurn = 0;
@@ -120,7 +121,9 @@ public class Game {
 
                 try{
                     Direction d = Direction.parse(code);
-                    totalMergedThisTurn = gameBoard.squash(d);
+                    MoveResult turn = gameBoard.squash(d);
+
+                    totalMergedThisTurn = turn.mergeCount;
 
                     if(totalMergedThisTurn < 0){
                         //We've tried to move in an invalid direction
@@ -130,6 +133,7 @@ public class Game {
                     }
 
                     totalMerged += totalMergedThisTurn;
+                    score += turn.mergeValue;
 
                     totalMoves++;
 
@@ -223,7 +227,7 @@ public class Game {
 
             if(displayStats){
                 switch(row){
-                    case 0:  System.out.println("\t\tTotal Moves: " + totalMoves); break;
+                    case 0:  System.out.println("\t\tScore: " + score + "\tTotal Moves: " + totalMoves); break;
                     case 1:  System.out.println("\t\tTotal Merged Cells: " + totalMerged); break;
                     case 2:  System.out.println("\t\tTotal Merged This Turn: " + totalMergedThisTurn); break;
                     case 3:  System.out.println("\t\tSeed: " + gameBoard.getSeed().substring(0, 4) + " " + gameBoard.getSeed().substring(4, 8)); break;
