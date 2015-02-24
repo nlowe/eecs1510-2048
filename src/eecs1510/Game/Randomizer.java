@@ -4,9 +4,16 @@ import java.util.Random;
 
 /**
  * Created by nathan on 2/17/15
+ *
+ * A seeded random-number generator. Seeds consist of the numbers 0-9 and capital letters,
+ * are 8 characters long, and may or may not have a space between the 4th and 5th characters.
+ *
+ * For simplicities sake, certain numbers are counted as letters. See <code>asciiSimplify()</code>
+ * for details
  */
 public class Randomizer {
 
+    /** The valid characters that may make up a seed */
     public static final String VALID_SEED_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     public class InvalidSeedException extends Exception {
@@ -33,6 +40,13 @@ public class Randomizer {
         this.source = new Random(iv);
     }
 
+    /**
+     * Determines whether a seed is valid. All whitespace characters should
+     * be stripped from the seed prior to calling this method
+     *
+     * @param seed
+     * @return
+     */
     public static boolean validSeed(String seed) {
         if (seed.length() != 8) {
             return false;
@@ -46,6 +60,11 @@ public class Randomizer {
         return true;
     }
 
+    /**
+     * Generates a random seed
+     *
+     * @return
+     */
     public static String randomSeed() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 8; i++) {
@@ -55,6 +74,11 @@ public class Randomizer {
     }
 
 
+    /**
+     * Simplifies a seed. '0' is the same as 'O', '3' is the same as 'E', and '1' is the same as 'L'
+     * @param c
+     * @return
+     */
     private static char asciiSimplify(char c) {
         if (c == '0' || c == 'O') {
             return '0';
@@ -67,6 +91,9 @@ public class Randomizer {
         return c;
     }
 
+    /**
+     * @return a random number between 0 and 1 exclusive
+     */
     public double next() {
         return source.nextDouble();
     }

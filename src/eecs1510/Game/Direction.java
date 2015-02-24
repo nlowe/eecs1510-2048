@@ -55,6 +55,12 @@ public enum Direction {
         throw new IllegalArgumentException("Unknown Direction for code " + c);
     }
 
+    /**
+     * The original assignment called for UDLR instead of WSAD or IKJL for movement keys.
+     * This method is called to override the original keys with more sensible ones if specified.
+     *
+     * @param b whether or not to use legacy input keys
+     */
     public static void useLegacyInput(boolean b) {
         legacyInput = b;
     }

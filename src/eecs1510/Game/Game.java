@@ -52,7 +52,6 @@ public class Game {
         }
     }
 
-
     public Game() throws Randomizer.InvalidSeedException {
         gameBoard = new Board();
     }
@@ -61,24 +60,41 @@ public class Game {
         gameBoard = new Board(seed);
     }
 
+    /**
+     * Re-initializes the game board with the specified size
+     *
+     * @param size the new size of the game board
+     * @throws Randomizer.InvalidSeedException
+     */
     private void resize(int size) throws Randomizer.InvalidSeedException {
         gameBoard = new Board(size, gameBoard.getSeed());
 
         resetStats();
     }
 
+    /**
+     * Re-initializes the game board with the specified seed
+     * @param seed
+     * @throws Randomizer.InvalidSeedException
+     */
     private void changeSeed(String seed) throws Randomizer.InvalidSeedException {
         gameBoard = new Board(gameBoard.getSize(), seed);
 
         resetStats();
     }
 
+    /**
+     * Resets all tracked statistics
+     */
     private void resetStats() {
         totalMoves = totalMerged = 0;
         lost = false;
         notifiedWon = false;
     }
 
+    /**
+     * The main game loop
+     */
     public void run() {
         try(Scanner s = new Scanner(System.in)) {
 
@@ -127,16 +143,16 @@ public class Game {
 
                     totalMergedThisTurn = turn.mergeCount;
 
-                    if (totalMergedThisTurn < 0) {
+                    if (turn.isInvalid()) {
                         //We've tried to move in an invalid direction
                         totalMergedThisTurn = 0;
                         warning += "Invalid Move, try again!";
                         continue;
                     }
 
+                    // Update Statistics
                     totalMerged += totalMergedThisTurn;
                     score += turn.mergeValue;
-
                     totalMoves++;
 
                     if (!gameBoard.placeRandom()) {
@@ -144,11 +160,11 @@ public class Game {
                         printLostNotification();
                     }
 
+                    // Check if we've won the game
                     if (!notifiedWon) {
                         if (gameBoard.isWon()) {
                             printVictoryNotification();
                             s.next();
-                            notifiedWon = true;
                         }
                     }
                 } catch(IllegalArgumentException e) {
@@ -162,11 +178,21 @@ public class Game {
 
     }
 
+    /**
+     * Notifies the user that they have won
+     */
     private void printVictoryNotification() {
+        if(!gameBoard.isWon()) return;
+
         System.out.println("You've won after " + totalMoves + "turns!\n" +
                 "The game is now in \"Endless Mode\", Try and get to 4096! Thank you for playing!");
+
+        notifiedWon = true;
     }
 
+    /**
+     * Notifies the user that they have lost
+     */
     private void printLostNotification() {
         if (!lost) {
             throw new IllegalStateException("Game is still going!");
@@ -186,7 +212,7 @@ public class Game {
     }
 
     /**
-     * Prints the help menu
+     * Prints the in-game help menu
      */
     public void printInGameHelp() {
         System.out.println("2048 (A clone of \"3's\"), Developed by Nathan Lowe for EECS 1510\n");

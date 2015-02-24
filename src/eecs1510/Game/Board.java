@@ -250,8 +250,14 @@ public class Board {
         return new MoveResult(totalMerged, totalMergedValue);
     }
 
+    /**
+     * Sets the state of the game board by copying the specified data
+     * @param s the Data to copy. Must be a SIZE x SIZE array
+     */
     private void setState(int[][] s) {
-        //TODO: Validate input
+        if(s.length != size || Arrays.stream(s).filter((r) -> r.length != size).count() > 0){
+            throw new IllegalArgumentException("The specified array does not match the game board size");
+        }
 
         for (int i = 0; i < size; i++) {
             System.arraycopy(s[i], 0, data[i], 0, size);
