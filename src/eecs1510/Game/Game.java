@@ -12,6 +12,8 @@ public class Game {
     public static final char QUIT = 'q';
     public static final char HELP = 'h';
     public static final char RESTART = 'r';
+    public static final char UNDO = 'z';
+    public static final char REDO = 'y';
 
     /** The game board associated with the current game */
     private Board gameBoard;
@@ -135,6 +137,14 @@ public class Game {
                     gameBoard = new Board();
                     resetStats();
                     continue;
+                } else if (code == UNDO) {
+                    warning += "Undoing your last move? Cheater";
+                    gameBoard.undo();
+                    continue;
+                } else if (code == REDO) {
+                    warning += "Redoing your last move? Cheater";
+                    gameBoard.redo();
+                    continue;
                 }
 
                 try {
@@ -220,6 +230,8 @@ public class Game {
         System.out.println("Keys:");
         System.out.println("\th: This Help Menu");
         System.out.println("\tr: Restart the Game");
+        System.out.println("\tz: Undo the previous move");
+        System.out.println("\ty: Redo the previously undone move");
         System.out.println("\tq: Quit\n");
         System.out.println("\t\t\t\tUP (i or w)");
         System.out.println("\tLEFT (a or h)\t\t\tRIGHT(d or l)");
