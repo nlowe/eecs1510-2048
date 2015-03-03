@@ -9,12 +9,14 @@ import java.util.Scanner;
  */
 public class Game {
 
+    /* ======= Special control keys ======= */
     public static final char QUIT = 'q';
     public static final char HELP = 'h';
     public static final char HELP_ALT = '?';
     public static final char RESTART = 'r';
     public static final char UNDO = 'z';
     public static final char REDO = 'y';
+    /*===================================== */
 
     /** The game board associated with the current game */
     private Board gameBoard;
@@ -28,12 +30,17 @@ public class Game {
     private int totalMerged = 0;
     private int totalMergedThisTurn = 0;
 
+    /**
+     * Main entry point for the program. Parses command line arguments and starts a game.
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             Game g = new Game();
 
             new OptionsParser().add("seed", ((s) -> {
                 try {
+                    // Remove leading and trailing quotes and strip whitespace
                     g.changeSeed(s.replaceAll("^[\"\']+", "").replaceAll("[\"\']+$", "").replaceAll("\\s", ""));
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
@@ -45,8 +52,9 @@ public class Game {
                     e.printStackTrace();
                 }
             }).addSwitch("endless", (() -> g.notifiedWon = true))
-                    .addSwitch("WASD", () -> Direction.useLegacyInput(false))
-                    .addSwitch("noStats", () -> g.displayStats = false).parse(args);
+              .addSwitch("WASD", () -> Direction.useLegacyInput(false))
+              .addSwitch("noStats", () -> g.displayStats = false)
+              .parse(args);
 
             g.run();
         } catch(Randomizer.InvalidSeedException e) {
@@ -243,6 +251,14 @@ public class Game {
         System.out.println("Press Any Key and then Enter to return to the game...");
     }
 
+    /**
+     * Converts a collection of characters to a formatted string:
+     *
+     * ('keys[0]', 'keys[1]', ... or 'keys[keys.length-1]')
+     *
+     * @param keys
+     * @return
+     */
     private String keyString(char[] keys){
         StringBuilder sb = new StringBuilder().append("(").append(keys[0]);
         for(int i=1; i<keys.length-1; i++){
@@ -306,9 +322,9 @@ public class Game {
     }
 
     public enum RowDividerType {
-        TOP,
-        INTERMEDIATE,
-        BOTTOM
+            /** The divider for the top of the game board: '╔══════╦══════╦══════╦══════╗' */ TOP,
+        /** The divider in-between rows in the game board: '╠══════╬══════╬══════╬══════╣' */ INTERMEDIATE,
+         /** The Divider for the bottom of the game board: '╚══════╩══════╩══════╩══════╝' */ BOTTOM
     }
 
     /**
@@ -322,7 +338,6 @@ public class Game {
         topRow.append(t == RowDividerType.TOP ? '\u2554' : t == RowDividerType.INTERMEDIATE ? '\u2560' : '\u255A');
 
         int width = gameBoard.getSize();
-
         for (int i = 0; i < width; i++) {
             topRow.append("\u2550\u2550\u2550\u2550\u2550\u2550");
             if (i < width - 1) {

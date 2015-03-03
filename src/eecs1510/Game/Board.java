@@ -150,7 +150,9 @@ public class Board {
      *
      * @param source The row or column-slice to merge
      * @param LTR    The direction to merge in
-     * @return the total number of merged elements
+     * @return a <code>MoveResult</code> object containing the total number
+     *         of merged cells as well as the score gained by those merged
+     *         cells
      */
     private MoveResult merge(int[] source, boolean LTR) {
         int totalMerged = 0;
@@ -333,16 +335,15 @@ public class Board {
     public boolean placeRandom() {
         int initialValue = rng.next() >= FOUR_THRESHOLD ? 4 : 2;
 
-        int[] freeRows = getFreeRows();
+        ArrayList<int[]> freeCells = getFreeCells();
 
-        if (freeRows.length == 0) {
+        if (freeCells.size() == 0) {
             return false;
         }
 
-        int freeRow = freeRows[(int) (rng.next() * freeRows.length)];
-
-        int[] freeColumns = getFreeColumns(freeRow);
-        int freeColumn = getFreeColumns(freeRow)[(int) (rng.next() * freeColumns.length)];
+        int[] cell = freeCells.get((int) (rng.next() * freeCells.size()));
+        int freeRow = cell[0];
+        int freeColumn = cell[1];
 
         System.out.println("Placing " + initialValue + " in " + freeRow + "," + freeColumn);
 
@@ -352,49 +353,15 @@ public class Board {
         return true;
     }
 
-    /**
-     * Determines what rows have free cells
-     *
-     * @return An array of indices pointing to rows with free cells
-     */
-    public int[] getFreeRows() {
-        ArrayList<Integer> rows = new ArrayList<>();
+    public ArrayList<int[]> getFreeCells(){
+        ArrayList<int[]> results = new ArrayList<>();
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (data[i][j] <= 0) {
-                    rows.add(i);
-                    break;
+        for (int row = 0; row < size; row++) {
+            for (int col=0; col < size; col++) {
+                if(data[row][col] <= 0){
+                    results.add(new int[]{row, col});
                 }
             }
-        }
-
-        int[] results = new int[rows.size()];
-        for (int i = 0; i < rows.size(); i++) {
-            results[i] = rows.get(i);
-        }
-
-        return results;
-    }
-
-    /**
-     * Determines what columns in a given row have free cells
-     *
-     * @param row The index of the row to check
-     * @return An array of indices pointing to free columns in a given row
-     */
-    public int[] getFreeColumns(int row) {
-        ArrayList<Integer> columns = new ArrayList<>();
-
-        for (int j = 0; j < size; j++) {
-            if (data[row][j] <= 0) {
-                columns.add(j);
-            }
-        }
-
-        int[] results = new int[columns.size()];
-        for (int i = 0; i < columns.size(); i++) {
-            results[i] = columns.get(i);
         }
 
         return results;
@@ -422,7 +389,8 @@ public class Board {
      * @return true iff the board contains a cell with the value <code>WIN_CONDITION_VALUE</code>
      */
     public boolean isWon() {
-        //We're using Java 8, might as well make use of streams
+        // We're using Java 8, might as well make use of streams
+        // Basically, this gets the maximum value in a 2d array
         return Arrays.stream(data).flatMapToInt(Arrays::stream).max().getAsInt() >= WIN_CONDITION_VALUE;
     }
 }
