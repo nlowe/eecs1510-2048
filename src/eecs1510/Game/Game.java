@@ -11,6 +11,7 @@ public class Game {
 
     public static final char QUIT = 'q';
     public static final char HELP = 'h';
+    public static final char HELP_ALT = '?';
     public static final char RESTART = 'r';
     public static final char UNDO = 'z';
     public static final char REDO = 'y';
@@ -127,7 +128,7 @@ public class Game {
 
                 if (code == QUIT) {
                     break;
-                } else if (code == HELP) {
+                } else if (code == HELP || code == HELP_ALT) {
                     clearScreen();
                     printInGameHelp();
                     s.next();
@@ -226,18 +227,30 @@ public class Game {
      */
     public void printInGameHelp() {
         System.out.println("2048 (A clone of \"3's\"), Developed by Nathan Lowe for EECS 1510\n");
-        System.out.println("Squash tiles in one of four directions. Tiles that match will be merged, tiles closest to the destination will be merged first!");
+        System.out.println("Squash tiles in one of four directions. Tiles that match will be merged,\n" +
+                "tiles closest to the destination will be merged first! Try to get a tile to 2048!\n");
         System.out.println("Keys:");
         System.out.println("\th: This Help Menu");
         System.out.println("\tr: Restart the Game");
         System.out.println("\tz: Undo the previous move");
         System.out.println("\ty: Redo the previously undone move");
         System.out.println("\tq: Quit\n");
-        System.out.println("\t\t\t\tUP (i or w)");
-        System.out.println("\tLEFT (a or h)\t\t\tRIGHT(d or l)");
-        System.out.println("\t\t\t\tDOWN (s or k)\n");
+        System.out.println("\t\t\t\tUP " + keyString(Direction.getCharactersFor(Direction.NORTH)));
+        System.out.println("\tLEFT " + keyString(Direction.getCharactersFor(Direction.WEST)) +
+                                        "\t\t\tRIGHT " + keyString(Direction.getCharactersFor(Direction.EAST)));
+        System.out.println("\t\t\t\tDOWN " + keyString(Direction.getCharactersFor(Direction.SOUTH)) + "\n");
 
         System.out.println("Press Any Key and then Enter to return to the game...");
+    }
+
+    private String keyString(char[] keys){
+        StringBuilder sb = new StringBuilder().append("(").append(keys[0]);
+        for(int i=1; i<keys.length-1; i++){
+            sb.append(", ").append(keys[i]);
+        }
+        sb.append(" or ").append(keys[keys.length-1]).append(")");
+
+        return sb.toString();
     }
 
     /**
