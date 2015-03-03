@@ -21,6 +21,7 @@ public class Game {
     /** The game board associated with the current game */
     private Board gameBoard;
 
+    private boolean clearScreenEachTurn = false;
     private boolean displayStats = true;
     private boolean lost = false;
     private boolean notifiedWon = false;
@@ -54,6 +55,7 @@ public class Game {
             }).addSwitch("endless", (() -> g.notifiedWon = true))
               .addSwitch("WASD", () -> Direction.useLegacyInput(false))
               .addSwitch("noStats", () -> g.displayStats = false)
+              .addSwitch("clear", () -> g.clearScreenEachTurn = true)
               .parse(args);
 
             g.run();
@@ -226,6 +228,9 @@ public class Game {
      * Clears the screen on most compatible terminals
      */
     private void clearScreen() {
+        if(!clearScreenEachTurn){
+            return;
+        }
         System.out.print("\u001b[2J");
         System.out.flush();
     }
