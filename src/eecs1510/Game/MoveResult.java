@@ -8,14 +8,16 @@ package eecs1510.Game;
  *
  * Keeps track of the total number of merged cells and the value that they represent.
  */
-public class MoveResult {
+public class MoveResult
+{
 
     /** The total number of merged cells for a given move */
     public final int mergeCount;
     /** The total value of all merged cells for a given move */
     public final int mergeValue;
 
-    public MoveResult(int mergeCount, int mergeValue) {
+    public MoveResult(int mergeCount, int mergeValue)
+    {
         this.mergeCount = mergeCount;
         this.mergeValue = mergeValue;
     }
@@ -23,7 +25,8 @@ public class MoveResult {
     /**
      * @return a new MoveResult for an invalid move
      */
-    public static MoveResult invalid() {
+    public static MoveResult invalid()
+    {
         return new MoveResult(-1, -1);
     }
 
@@ -33,7 +36,8 @@ public class MoveResult {
      *
      * @return whether or not the result of a move was an invalid move
      */
-    public boolean isInvalid() {
+    public boolean isInvalid()
+    {
         return mergeCount == -1 && mergeValue == -1;
     }
 

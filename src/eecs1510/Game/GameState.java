@@ -8,7 +8,8 @@ package eecs1510.Game;
  * of merged cells, and total number of cells merged for the most recent
  * turn before this snapshot was generated.
  */
-public class GameState {
+public class GameState
+{
 
     public final int[][] board;
     public final int score;
@@ -16,7 +17,8 @@ public class GameState {
     public final int totalMerged;
     public final int totalMergedThisTurn;
 
-    public GameState(int[][] board, int score, int totalMoves, int totalMerged, int totalMergedThisTurn){
+    public GameState(int[][] board, int score, int totalMoves, int totalMerged, int totalMergedThisTurn)
+    {
         this.board = board;
         this.score = score;
         this.totalMoves = totalMoves;

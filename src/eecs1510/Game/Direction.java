@@ -6,7 +6,8 @@ package eecs1510.Game;
  * A direction vector. Use the convenience function <code>parse</code>
  * to obtain a direction vector for a given key
  */
-public enum Direction {
+public enum Direction
+{
     NORTH,
     SOUTH,
     EAST,
@@ -26,28 +27,37 @@ public enum Direction {
      * @return
      * @throws IllegalArgumentException if the specified character is not in the lookup list
      */
-    public static Direction parse(char c) throws IllegalArgumentException {
+    public static Direction parse(char c) throws IllegalArgumentException
+    {
 
-        for (char d : NORTH_CHARS[legacyInput ? 0 : 1]) {
-            if (c == d) {
+        for (char d : NORTH_CHARS[legacyInput ? 0 : 1])
+        {
+            if (c == d)
+            {
                 return NORTH;
             }
         }
 
-        for (char d : SOUTH_CHARS[legacyInput ? 0 : 1]) {
-            if (c == d) {
+        for (char d : SOUTH_CHARS[legacyInput ? 0 : 1])
+        {
+            if (c == d)
+            {
                 return SOUTH;
             }
         }
 
-        for (char d : EAST_CHARS[legacyInput ? 0 : 1]) {
-            if (c == d) {
+        for (char d : EAST_CHARS[legacyInput ? 0 : 1])
+        {
+            if (c == d)
+            {
                 return EAST;
             }
         }
 
-        for (char d : WEST_CHARS[legacyInput ? 0 : 1]) {
-            if (c == d) {
+        for (char d : WEST_CHARS[legacyInput ? 0 : 1])
+        {
+            if (c == d)
+            {
                 return WEST;
             }
         }
@@ -55,8 +65,10 @@ public enum Direction {
         throw new IllegalArgumentException("Unknown Direction for code " + c);
     }
 
-    public static char[] getCharactersFor(Direction d){
-        switch(d){
+    public static char[] getCharactersFor(Direction d)
+    {
+        switch(d)
+        {
             case NORTH: return NORTH_CHARS[legacyInput ? 0: 1];
             case SOUTH: return SOUTH_CHARS[legacyInput ? 0 : 1];
             case EAST: return EAST_CHARS[legacyInput ? 0 : 1];
@@ -71,7 +83,8 @@ public enum Direction {
      *
      * @param b whether or not to use legacy input keys
      */
-    public static void useLegacyInput(boolean b) {
+    public static void useLegacyInput(boolean b)
+    {
         legacyInput = b;
     }
 }

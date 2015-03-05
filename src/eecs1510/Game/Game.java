@@ -9,7 +9,8 @@ import java.util.Scanner;
  *
  * A clone of the game 2048 (which is itself a clone of the game "3's") for EECS 1510
  */
-public class Game {
+public class Game
+{
 
     /* ======= Special control keys ======= */
     public static final char QUIT = 'q';
@@ -23,9 +24,9 @@ public class Game {
     /** The default size of the undo buffer */
     public static final int DEFAULT_UNDO_SIZE = 1;
 
-    private LinkedList<GameState> history = new LinkedList<>();
+    private final LinkedList<GameState> history = new LinkedList<>();
     private int undoSize = DEFAULT_UNDO_SIZE;
-    private LinkedList<GameState> redoHistory = new LinkedList<>();
+    private final LinkedList<GameState> redoHistory = new LinkedList<>();
     private boolean allowRedo = false;
 
     /** The game board associated with the current game */
@@ -45,8 +46,10 @@ public class Game {
      * Main entry point for the program. Parses command line arguments and starts a game.
      * @param args
      */
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args)
+    {
+        try
+        {
             Game g = new Game();
 
             new OptionsParser().add("seed", "Start the game with the specified seed", ((s) -> {
@@ -82,11 +85,13 @@ public class Game {
         }
     }
 
-    public Game() throws Randomizer.InvalidSeedException {
+    public Game() throws Randomizer.InvalidSeedException
+    {
         gameBoard = new Board();
     }
 
-    public Game(String seed) throws Randomizer.InvalidSeedException {
+    public Game(String seed) throws Randomizer.InvalidSeedException
+    {
         gameBoard = new Board(seed);
     }
 
@@ -96,7 +101,8 @@ public class Game {
      * @param size the new size of the game board
      * @throws Randomizer.InvalidSeedException
      */
-    private void resize(int size) throws Randomizer.InvalidSeedException {
+    private void resize(int size) throws Randomizer.InvalidSeedException
+    {
         gameBoard = new Board(size, gameBoard.getSeed());
 
         resetStats();
@@ -107,7 +113,8 @@ public class Game {
      * @param seed
      * @throws Randomizer.InvalidSeedException
      */
-    private void changeSeed(String seed) throws Randomizer.InvalidSeedException {
+    private void changeSeed(String seed) throws Randomizer.InvalidSeedException
+    {
         gameBoard = new Board(gameBoard.getSize(), seed);
 
         resetStats();
@@ -116,7 +123,8 @@ public class Game {
     /**
      * Resets all tracked statistics
      */
-    private void resetStats() {
+    private void resetStats()
+    {
         totalMoves = totalMerged = 0;
         lost = false;
         notifiedWon = false;
@@ -125,7 +133,8 @@ public class Game {
     /**
      * @return a <code>GameState</code> object representing the current state of the game
      */
-    public GameState getState(){
+    public GameState getState()
+    {
         return new GameState(arrayCopy2d(gameBoard.getData()), score, totalMoves, totalMerged, totalMergedThisTurn);
     }
 
@@ -133,10 +142,13 @@ public class Game {
      * Pushes a copy of the game state onto the history stack if it does not
      * match the copy at the top of the stack
      */
-    public void takeSnapshot() {
-        if (undoSize != 0 && (history.isEmpty() || !Arrays.deepEquals(history.peek().board, gameBoard.getData()))) {
+    public void takeSnapshot()
+    {
+        if (undoSize != 0 && (history.isEmpty() || !Arrays.deepEquals(history.peek().board, gameBoard.getData())))
+        {
             history.push(getState());
-            if(undoSize > 0) {
+            if(undoSize > 0)
+            {
                 trimListToSize(history, undoSize);
             }
         }
@@ -148,8 +160,10 @@ public class Game {
      * @param list the list to trim
      * @param maxSize the size the list should be
      */
-    private static void trimListToSize(LinkedList<?> list, int maxSize){
-        while(list.size() > maxSize){
+    private static void trimListToSize(LinkedList<?> list, int maxSize)
+    {
+        while(list.size() > maxSize)
+        {
             list.removeLast();
         }
     }
@@ -161,9 +175,11 @@ public class Game {
      * @param source the source array
      * @return a new object with the same values as the array
      */
-    private static int[][] arrayCopy2d(int[][] source) {
+    private static int[][] arrayCopy2d(int[][] source)
+    {
         int[][] result = new int[source.length][];
-        for (int i=0; i<source.length; i++) {
+        for (int i=0; i<source.length; i++)
+        {
             result[i] = new int[source[i].length];
             System.arraycopy(source[i], 0, result[i], 0, source[i].length);
         }
@@ -175,10 +191,13 @@ public class Game {
      * Pushes the current game state data onto the Redo stack and restores
      * the copy of the game state from the top of the history stack
      */
-    public boolean undo() {
-        if (history.size() > 0) {
+    public boolean undo()
+    {
+        if (history.size() > 0)
+        {
             redoHistory.push(getState());
-            if(undoSize > 0) {
+            if(undoSize > 0)
+            {
                 trimListToSize(redoHistory, undoSize);
             }
 
@@ -191,7 +210,7 @@ public class Game {
             totalMergedThisTurn = state.totalMergedThisTurn;
 
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -200,10 +219,13 @@ public class Game {
      * Pushes the current game state data onto the history stack and restores
      * the copy of the game state from the top of the redo stack
      */
-    public boolean redo() {
-        if (allowRedo && redoHistory.size() > 0) {
+    public boolean redo()
+    {
+        if (allowRedo && redoHistory.size() > 0)
+        {
             history.push(getState());
-            if(undoSize > 0) {
+            if(undoSize > 0)
+            {
                 trimListToSize(history, undoSize);
             }
 
@@ -216,7 +238,7 @@ public class Game {
             totalMergedThisTurn = state.totalMergedThisTurn;
 
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -224,13 +246,16 @@ public class Game {
     /**
      * The main game loop
      */
-    public void run() {
-        try(Scanner s = new Scanner(System.in)) {
+    public void run()
+    {
+        try(Scanner s = new Scanner(System.in))
+        {
 
             // If we run into a problem, store the message here and warn the user the next cycle
             String warning = "";
 
-            while(!lost) {
+            while(!lost)
+            {
                 // Clear Screen on compatible terminals
                 clearScreen();
 
@@ -238,7 +263,8 @@ public class Game {
                 System.out.println("");
 
                 // Print a warning if we have one
-                if (!warning.isEmpty()) {
+                if (!warning.isEmpty())
+                {
                     System.out.println(warning);
                     warning = "";
                 }
@@ -248,11 +274,13 @@ public class Game {
                 String input = s.next().toLowerCase();
                 char code = input.charAt(0);
 
-                if (input.length() > 1) {
+                if (input.length() > 1)
+                {
                     warning += "WARNING: More than one character entered. Ignoring everything except the first\n";
                 }
 
-                if (code == QUIT) {
+                if (code == QUIT)
+                {
                     System.out.println("Quitting after " + totalMoves + " moves. You managed to merge " +
                                                           totalMerged + " cells for a score of " + score);
                     break;
@@ -267,18 +295,21 @@ public class Game {
                     resetStats();
                     continue;
                 } else if (code == UNDO) {
-                    if(!undo()){
+                    if(!undo())
+                    {
                         warning += "Nothing to undo";
                     }
                     continue;
                 } else if (code == REDO && allowRedo) {
-                    if(!redo()){
+                    if(!redo())
+                    {
                         warning += "Nothing to redo";
                     }
                     continue;
                 }
 
-                try {
+                try
+                {
                     Direction d = Direction.parse(code);
 
                     takeSnapshot();
@@ -286,7 +317,8 @@ public class Game {
 
                     totalMergedThisTurn = turn.mergeCount;
 
-                    if (turn.isInvalid()) {
+                    if (turn.isInvalid())
+                    {
                         //We've tried to move in an invalid direction
                         totalMergedThisTurn = 0;
                         warning += "Invalid Move, try again!";
@@ -298,17 +330,17 @@ public class Game {
                     score += turn.mergeValue;
                     totalMoves++;
 
-                    if (!gameBoard.placeRandom()) {
+                    if (!gameBoard.placeRandom())
+                    {
                         lost = true;
                         printLostNotification();
                     }
 
                     // Check if we've won the game
-                    if (!notifiedWon) {
-                        if (gameBoard.isWon()) {
+                    if (!notifiedWon && gameBoard.isWon())
+                    {
                             printVictoryNotification();
                             s.next();
-                        }
                     }
                 } catch(IllegalArgumentException e) {
                     warning += "WARNING: " + e.getMessage() + "\n";
@@ -324,7 +356,8 @@ public class Game {
     /**
      * Notifies the user that they have won
      */
-    private void printVictoryNotification() {
+    private void printVictoryNotification()
+    {
         if(!gameBoard.isWon()) return;
 
         System.out.println("You've won after " + totalMoves + "turns!\n" +
@@ -336,17 +369,20 @@ public class Game {
     /**
      * Notifies the user that they have lost
      */
-    private void printLostNotification() {
-        if (!lost) {
+    private void printLostNotification()
+    {
+        if (!lost)
+        {
             throw new IllegalStateException("Game is still going!");
         }
 
         // If the user has already won the game and is in endless mode, they haven't technically "lost"
-        if(gameBoard.isWon()){
+        if(gameBoard.isWon())
+        {
             System.out.print("The board became full after " + totalMoves + " turns! You managed to merge " +
                                                              totalMerged + " cells for a total score of " + score);
             System.exit(0);
-        }else{
+        } else {
             System.out.print("You Lost the Game after " + totalMoves + " turns! You managed to merge " +
                     totalMerged + " cells for a total score of " + score);
             System.exit(-1);
@@ -357,8 +393,10 @@ public class Game {
     /**
      * Clears the screen on most compatible terminals
      */
-    private void clearScreen() {
-        if(!clearScreenEachTurn){
+    private void clearScreen()
+    {
+        if(!clearScreenEachTurn)
+        {
             return;
         }
         System.out.print("\u001b[2J");
@@ -368,7 +406,8 @@ public class Game {
     /**
      * Prints the in-game help menu
      */
-    public void printInGameHelp() {
+    public void printInGameHelp()
+    {
         System.out.println("2048 (A clone of \"3's\"), Developed by Nathan Lowe for EECS 1510\n");
         System.out.println("Squash tiles in one of four directions. Tiles that match will be merged,\n" +
                 "tiles closest to the destination will be merged first! Try to get a tile to 2048!\n");
@@ -394,9 +433,11 @@ public class Game {
      * @param keys
      * @return
      */
-    private String keyString(char[] keys){
+    private String keyString(char[] keys)
+    {
         StringBuilder sb = new StringBuilder().append("(").append(keys[0]);
-        for(int i=1; i<keys.length-1; i++){
+        for(int i=1; i<keys.length-1; i++)
+        {
             sb.append(", ").append(keys[i]);
         }
         sb.append(" or ").append(keys[keys.length-1]).append(")");
@@ -407,30 +448,37 @@ public class Game {
     /**
      * Prints the game board
      */
-    public void printBoard() {
+    public void printBoard()
+    {
         int width = gameBoard.getSize();
 
-        for (int row = 0; row < width; row++) {
-            if (row == 0) {
+        for (int row = 0; row < width; row++)
+        {
+            if (row == 0)
+            {
                 System.out.println(buildRowDivider(RowDividerType.TOP));
             } else {
                 System.out.println(buildRowDivider(RowDividerType.INTERMEDIATE));
             }
 
             System.out.print('\u2551');
-            for (int column = 0; column < width; column++) {
+            for (int column = 0; column < width; column++)
+            {
                 int element = gameBoard.getElement(row, column);
                 //TODO: Don't do fixed column sizes. Once the game goes into endless mode
                 //TODO: some columns have the potential to be more than 4 digits
                 System.out.print(element > 0 ? String.format(" %4d ", element) : "      ");
-                if (column < width - 1) {
+                if (column < width - 1)
+                {
                     System.out.print('\u2551');
                 }
             }
             System.out.print('\u2551');
 
-            if (displayStats) {
-                switch(row) {
+            if (displayStats)
+            {
+                switch(row)
+                {
                     case 0:
                         System.out.println("\t\tScore: " + score + "\tTotal Moves: " + totalMoves);
                         break;
@@ -450,13 +498,15 @@ public class Game {
                 System.out.println();
             }
 
-            if (row + 1 == width) {
+            if (row + 1 == width)
+            {
                 System.out.println(buildRowDivider(RowDividerType.BOTTOM));
             }
         }
     }
 
-    public enum RowDividerType {
+    public enum RowDividerType
+    {
             /** The divider for the top of the game board: '╔══════╦══════╦══════╦══════╗' */ TOP,
         /** The divider in-between rows in the game board: '╠══════╬══════╬══════╬══════╣' */ INTERMEDIATE,
          /** The Divider for the bottom of the game board: '╚══════╩══════╩══════╩══════╝' */ BOTTOM
@@ -468,14 +518,17 @@ public class Game {
      * @param t the Type of divider to generate
      * @return
      */
-    public String buildRowDivider(RowDividerType t) {
+    public String buildRowDivider(RowDividerType t)
+    {
         StringBuilder topRow = new StringBuilder();
         topRow.append(t == RowDividerType.TOP ? '\u2554' : t == RowDividerType.INTERMEDIATE ? '\u2560' : '\u255A');
 
         int width = gameBoard.getSize();
-        for (int i = 0; i < width; i++) {
+        for (int i = 0; i < width; i++)
+        {
             topRow.append("\u2550\u2550\u2550\u2550\u2550\u2550");
-            if (i < width - 1) {
+            if (i < width - 1)
+            {
                 topRow.append(t == RowDividerType.TOP ? '\u2566' : t == RowDividerType.INTERMEDIATE ? '\u256C' : '\u2569');
             }
         }
