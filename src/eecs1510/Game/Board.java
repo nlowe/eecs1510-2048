@@ -79,7 +79,6 @@ public class Board {
      * @return The total number of squashed tiles or -1 if the move was invalid
      */
     public MoveResult squash(Direction d) {
-        System.out.println("Trying to squash " + d);
         switch(d){
             case NORTH:{ return squashNorth(); }
             case SOUTH:{ return squashSouth(); }
@@ -284,8 +283,6 @@ public class Board {
         int[] cell = freeCells.get((int) (rng.next() * freeCells.size()));
         int freeRow = cell[0];
         int freeColumn = cell[1];
-
-        System.out.println("Placing " + initialValue + " in " + freeRow + "," + freeColumn);
 
         assert (data[freeRow][freeColumn] == 0);
         data[freeRow][freeColumn] = initialValue;
