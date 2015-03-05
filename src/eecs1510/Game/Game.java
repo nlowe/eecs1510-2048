@@ -115,6 +115,12 @@ public class Game
      */
     private void changeSeed(String seed) throws Randomizer.InvalidSeedException
     {
+        if(!Randomizer.validSeed(seed))
+        {
+            System.err.println(seed + " is not a valid seed!");
+            return;
+        }
+
         gameBoard = new Board(gameBoard.getSize(), seed);
 
         resetStats();
