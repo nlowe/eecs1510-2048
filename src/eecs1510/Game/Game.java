@@ -39,23 +39,23 @@ public class Game {
         try {
             Game g = new Game();
 
-            new OptionsParser().add("seed", ((s) -> {
+            new OptionsParser().add("seed", "Start the game with the specified seed", ((s) -> {
                 try {
                     // Remove leading and trailing quotes and strip whitespace
                     g.changeSeed(s.replaceAll("^[\"\']+", "").replaceAll("[\"\']+$", "").replaceAll("\\s", ""));
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
                 }
-            })).add("size", (i) -> {
+            })).add("size", "Initialize the board with the specified size", (i) -> {
                 try {
                     g.resize(Integer.parseInt(i));
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
                 }
-            }).addSwitch("endless", (() -> g.notifiedWon = true))
-              .addSwitch("WASD", () -> Direction.useLegacyInput(false))
-              .addSwitch("noStats", () -> g.displayStats = false)
-              .addSwitch("clear", () -> g.clearScreenEachTurn = true)
+            }).addSwitch("endless", "Start the game in endless mode", (() -> g.notifiedWon = true))
+              .addSwitch("WASD", "Use WASD/IJKL instead of ULDR/8462 for movement", () -> Direction.useLegacyInput(false))
+              .addSwitch("noStats", "Don't display stats", () -> g.displayStats = false)
+              .addSwitch("clear", "Attempt to clear the display each turn", () -> g.clearScreenEachTurn = true)
               .parse(args);
 
             g.run();

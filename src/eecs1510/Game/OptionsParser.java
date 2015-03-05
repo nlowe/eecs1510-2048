@@ -1,6 +1,6 @@
 package eecs1510.Game;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 /**
@@ -15,27 +15,62 @@ import java.util.function.Consumer;
  */
 public class OptionsParser {
 
-    public interface SwitchOption {
+    private class Option {
+        protected final String abbreviation;
+        protected final String name;
+        protected final String help;
+        protected final Consumer<String> callback;
+
+        protected Option(String abbreviation, String name, String help, Consumer<String> callback){
+            this.abbreviation = abbreviation;
+            this.name = name;
+            this.help = help;
+            this.callback = callback;
+        }
+    }
+
+    private class SwitchOption {
+        protected final String name;
+        protected final String help;
+        protected final SwitchAction callback;
+
+        protected SwitchOption(String name, String help, SwitchAction callback){
+            this.name = name;
+            this.help = help;
+            this.callback = callback;
+        }
+    }
+
+    public interface SwitchAction {
         public void apply();
     }
 
-    private HashMap<String, Consumer<String>> options;
-    private HashMap<String, SwitchOption> switchOptions;
+    private ArrayList<Option> options;
+    private ArrayList<SwitchOption> switchOptions;
 
     public OptionsParser() {
-        options = new HashMap<>();
-        switchOptions = new HashMap<>();
+        options = new ArrayList<>();
+        switchOptions = new ArrayList<>();
+
+        addSwitch("help", "Print this help message and exit", () -> {
+            System.out.println(getHelp());
+            System.exit(0);
+        });
+    }
+
+    public OptionsParser add(String name, String help, Consumer<String> callback){
+        return add(null, name, help, callback);
     }
 
     /**
      * Register a new option with the parser
      *
      * @param name The name of the option
-     * @param func The function to execute when the option is found. Takes one argument of type string and returns void
+     * @param callback The function to execute when the option is found. Takes one argument of type string and returns void
      * @return The option parser the option was added to. Useful for chaining together calls
      */
-    public OptionsParser add(String name, Consumer<String> func) {
-        options.put(name, func);
+    public OptionsParser add(String abbreviation, String name, String help, Consumer<String> callback) {
+        options.add(new Option(abbreviation, name, help, callback));
         return this;
     }
 
@@ -46,8 +81,8 @@ public class OptionsParser {
      * @param callback The function to execute when the switch option is found. Takes no arguments and returns void
      * @return The option parser the option was added to. Useful for chaining together calls
      */
-    public OptionsParser addSwitch(String name, SwitchOption callback) {
-        switchOptions.put(name, callback);
+    public OptionsParser addSwitch(String name, String help, SwitchAction callback) {
+        switchOptions.add(new SwitchOption(name, help, callback));
         return this;
     }
 
@@ -60,12 +95,21 @@ public class OptionsParser {
         for (int i = 0; i < args.length; i++) {
             String cmd = stripIndicator(args[i]);
 
-            if (options.containsKey(cmd) && i < args.length) {
-                String value = args[++i];
-                options.get(cmd).accept(value);
-            } else if (switchOptions.containsKey(cmd)) {
-                switchOptions.get(cmd).apply();
+            if(i < args.length-1) {
+                String next = args[i + 1];
+
+                options.stream().filter(
+                        (o) -> (o.abbreviation != null && o.abbreviation.equals(cmd)) || o.name.equals(cmd)
+                ).forEach(
+                        (o) -> o.callback.accept(next)
+                );
             }
+
+            switchOptions.stream().filter(
+                    (o) -> o.name.equals(cmd)
+            ).forEach(
+                    (o) -> o.callback.apply()
+            );
         }
     }
 
@@ -81,6 +125,22 @@ public class OptionsParser {
         }
 
         return cmd;
+    }
+
+    public String getHelp() {
+        StringBuilder sb = new StringBuilder();
+
+        for(Option opt : options){
+            sb.append("\t-").append(opt.abbreviation != null ? opt.abbreviation + ", --": "--").append(opt.name).append(" [VALUE]\t\t\t").append(opt.help);
+            sb.append("\n");
+        }
+
+        for(SwitchOption opt : switchOptions) {
+            sb.append("\t--").append(opt.name).append("\t\t\t").append(opt.help);
+            sb.append("\n");
+        }
+
+        return sb.toString();
     }
 
 }
