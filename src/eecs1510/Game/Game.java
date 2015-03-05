@@ -1,5 +1,7 @@
 package eecs1510.Game;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 /**
@@ -17,6 +19,14 @@ public class Game {
     public static final char UNDO = 'z';
     public static final char REDO = 'y';
     /*===================================== */
+
+    /** The default size of the undo buffer */
+    public static final int DEFAULT_UNDO_SIZE = 1;
+
+    private LinkedList<GameState> history = new LinkedList<>();
+    private int undoSize = DEFAULT_UNDO_SIZE;
+    private LinkedList<GameState> redoHistory = new LinkedList<>();
+    private boolean allowRedo = false;
 
     /** The game board associated with the current game */
     private Board gameBoard;
@@ -52,7 +62,14 @@ public class Game {
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
                 }
-            }).addSwitch("endless", "Start the game in endless mode", (() -> g.notifiedWon = true))
+            }).add("undo", "Maximum undo depth (Default: 1). Negative numbers mean unlimited", (i) -> {
+                try {
+                    g.undoSize = Integer.parseInt(i);
+                }  catch(NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }).addSwitch("redo", "Enable redo's", () -> g.allowRedo = true)
+              .addSwitch("endless", "Start the game in endless mode", (() -> g.notifiedWon = true))
               .addSwitch("WASD", "Use WASD/IJKL instead of ULDR/8462 for movement", () -> Direction.useLegacyInput(false))
               .addSwitch("noStats", "Don't display stats", () -> g.displayStats = false)
               .addSwitch("clear", "Attempt to clear the display each turn", () -> g.clearScreenEachTurn = true)
@@ -106,6 +123,105 @@ public class Game {
     }
 
     /**
+     * @return a <code>GameState</code> object representing the current state of the game
+     */
+    public GameState getState(){
+        return new GameState(arrayCopy2d(gameBoard.getData()), score, totalMoves, totalMerged, totalMergedThisTurn);
+    }
+
+    /**
+     * Pushes a copy of the game state onto the history stack if it does not
+     * match the copy at the top of the stack
+     */
+    public void takeSnapshot() {
+        if (undoSize != 0 && (history.isEmpty() || !Arrays.deepEquals(history.peek().board, gameBoard.getData()))) {
+            history.push(getState());
+            if(undoSize > 0) {
+                trimListToSize(history, undoSize);
+            }
+        }
+    }
+
+    /**
+     * Trims the specified list to the specified size, removing elements on the tail-end of the list
+     *
+     * @param list the list to trim
+     * @param maxSize the size the list should be
+     */
+    private static void trimListToSize(LinkedList<?> list, int maxSize){
+        while(list.size() > maxSize){
+            list.removeLast();
+        }
+    }
+
+    /**
+     * This is needed because calling <code>.clone()</code> on a multi-dimensional
+     * array simply returns a copy of the reference, not a copy of the array itself
+     *
+     * @param source the source array
+     * @return a new object with the same values as the array
+     */
+    private static int[][] arrayCopy2d(int[][] source) {
+        int[][] result = new int[source.length][];
+        for (int i=0; i<source.length; i++) {
+            result[i] = new int[source[i].length];
+            System.arraycopy(source[i], 0, result[i], 0, source[i].length);
+        }
+
+        return result;
+    }
+
+    /**
+     * Pushes the current game state data onto the Redo stack and restores
+     * the copy of the game state from the top of the history stack
+     */
+    public boolean undo() {
+        if (history.size() > 0) {
+            redoHistory.push(getState());
+            if(undoSize > 0) {
+                trimListToSize(redoHistory, undoSize);
+            }
+
+            GameState state = history.pop();
+
+            gameBoard.setState(arrayCopy2d(state.board));
+            score = state.score;
+            totalMoves = state.totalMoves;
+            totalMerged = state.totalMerged;
+            totalMergedThisTurn = state.totalMergedThisTurn;
+
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * Pushes the current game state data onto the history stack and restores
+     * the copy of the game state from the top of the redo stack
+     */
+    public boolean redo() {
+        if (allowRedo && redoHistory.size() > 0) {
+            history.push(getState());
+            if(undoSize > 0) {
+                trimListToSize(history, undoSize);
+            }
+
+            GameState state = redoHistory.pop();
+
+            gameBoard.setState(arrayCopy2d(state.board));
+            score = state.score;
+            totalMoves = state.totalMoves;
+            totalMerged = state.totalMerged;
+            totalMergedThisTurn = state.totalMergedThisTurn;
+
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /**
      * The main game loop
      */
     public void run() {
@@ -151,17 +267,21 @@ public class Game {
                     resetStats();
                     continue;
                 } else if (code == UNDO) {
-                    warning += "Undoing your last move? Cheater";
-                    gameBoard.undo();
+                    if(!undo()){
+                        warning += "Nothing to undo";
+                    }
                     continue;
-                } else if (code == REDO) {
-                    warning += "Redoing your last move? Cheater";
-                    gameBoard.redo();
+                } else if (code == REDO && allowRedo) {
+                    if(!redo()){
+                        warning += "Nothing to redo";
+                    }
                     continue;
                 }
 
                 try {
                     Direction d = Direction.parse(code);
+
+                    takeSnapshot();
                     MoveResult turn = gameBoard.squash(d);
 
                     totalMergedThisTurn = turn.mergeCount;
@@ -255,8 +375,8 @@ public class Game {
         System.out.println("Keys:");
         System.out.println("\th: This Help Menu");
         System.out.println("\tr: Restart the Game");
-        System.out.println("\tz: Undo the previous move");
-        System.out.println("\ty: Redo the previously undone move");
+        if(undoSize != 0) System.out.println("\tz: Undo the previous move (Max: " + (undoSize < 0 ? "Unlimited" : String.valueOf(undoSize)) + ")");
+        if(allowRedo) System.out.println("\ty: Redo the previously undone move");
         System.out.println("\tq: Quit\n");
         System.out.println("\t\t\t\tUP " + keyString(Direction.getCharactersFor(Direction.NORTH)));
         System.out.println("\tLEFT " + keyString(Direction.getCharactersFor(Direction.WEST)) +

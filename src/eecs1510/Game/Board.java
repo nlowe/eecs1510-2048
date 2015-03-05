@@ -2,7 +2,6 @@ package eecs1510.Game;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Stack;
 
 /**
  * Created by nathan on 2/12/15
@@ -23,8 +22,6 @@ public class Board {
 
     private final int size;
     private final int[][] data;
-    private Stack<int[][]> history;
-    private Stack<int[][]> redoHistory;
 
     public Board() throws Randomizer.InvalidSeedException {
         this(DEFAULT_SIZE, Randomizer.randomSeed());
@@ -43,59 +40,6 @@ public class Board {
 
         placeRandom();
         placeRandom();
-
-        history = new Stack<>();
-
-        redoHistory = new Stack<>();
-    }
-
-    /**
-     * Pushes a copy of the game board onto the history stack if it does not
-     * match the copy at the top of the stack
-     */
-    public void takeSnapshot() {
-        if (history.isEmpty() || !Arrays.deepEquals(history.peek(), data)) {
-            history.push(arrayCopy2d(data));
-        }
-    }
-
-    /**
-     * This is needed because calling <code>.clone()</code> on a multi-dimensional
-     * array simply returns a copy of the reference, not a copy of the array itself
-     *
-     * @param source the source array
-     * @return a new object with the same values as the array
-     */
-    private static int[][] arrayCopy2d(int[][] source) {
-        int[][] result = new int[source.length][];
-        for (int i=0; i<source.length; i++) {
-            result[i] = new int[source[i].length];
-            System.arraycopy(source[i], 0, result[i], 0, source[i].length);
-        }
-
-        return result;
-    }
-
-    /**
-     * Pushes the current game board data onto the Redo stack and restores
-     * the copy of the game board from the top of the history stack
-     */
-    public void undo() {
-        if (history.size() > 0) {
-            redoHistory.push(arrayCopy2d(data));
-            setState(arrayCopy2d(history.pop()));
-        }
-    }
-
-    /**
-     * Pushes the current game board data onto the history stack and restores
-     * the copy of the game board from the top of the redo stack
-     */
-    public void redo() {
-        if (redoHistory.size() > 0) {
-            history.push(arrayCopy2d(data));
-            setState(arrayCopy2d(redoHistory.pop()));
-        }
     }
 
     /**
@@ -212,7 +156,6 @@ public class Board {
         if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
         } else {
-            takeSnapshot();
             setState(newState);
         }
 
@@ -243,7 +186,6 @@ public class Board {
         if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
         } else {
-            takeSnapshot();
             setState(newState);
         }
 
@@ -274,7 +216,6 @@ public class Board {
         if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
         } else {
-            takeSnapshot();
             setState(newState);
         }
 
@@ -305,7 +246,6 @@ public class Board {
         if (totalMerged == 0 && Arrays.deepEquals(data, newState)) {
             return MoveResult.invalid();
         } else {
-            takeSnapshot();
             setState(newState);
         }
 
@@ -316,7 +256,7 @@ public class Board {
      * Sets the state of the game board by copying the specified data
      * @param s the Data to copy. Must be a SIZE x SIZE array
      */
-    private void setState(int[][] s) {
+    protected void setState(int[][] s) {
         if(s.length != size || Arrays.stream(s).filter((r) -> r.length != size).count() > 0){
             throw new IllegalArgumentException("The specified array does not match the game board size");
         }
@@ -392,5 +332,12 @@ public class Board {
         // We're using Java 8, might as well make use of streams
         // Basically, this gets the maximum value in a 2d array
         return Arrays.stream(data).flatMapToInt(Arrays::stream).max().getAsInt() >= WIN_CONDITION_VALUE;
+    }
+
+    /**
+     * @return the raw data held in the game board
+     */
+    public int[][] getData() {
+        return data;
     }
 }
