@@ -312,7 +312,7 @@ public class Board
 
         ArrayList<int[]> freeCells = getFreeCells();
 
-        if (freeCells.size() == 0)
+        if (freeCells.isEmpty())
         {
             return false;
         }

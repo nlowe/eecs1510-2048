@@ -325,6 +325,12 @@ public class Game
 
                     if (turn.isInvalid())
                     {
+                        if(gameBoard.getFreeCells().isEmpty()){
+                            lost = true;
+                            printLostNotification();
+                            continue;
+                        }
+
                         //We've tried to move in an invalid direction
                         totalMergedThisTurn = 0;
                         warning += "Invalid Move, try again!";
