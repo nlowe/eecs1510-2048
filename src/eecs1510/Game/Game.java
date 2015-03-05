@@ -137,6 +137,8 @@ public class Game {
                 }
 
                 if (code == QUIT) {
+                    System.out.println("Quitting after " + totalMoves + " moves. You managed to merge " +
+                                                          totalMerged + " cells for a score of " + score);
                     break;
                 } else if (code == HELP || code == HELP_ALT) {
                     clearScreen();
@@ -219,9 +221,17 @@ public class Game {
             throw new IllegalStateException("Game is still going!");
         }
 
-        System.out.print("You Lost the Game after " + totalMoves + " turns!");
-        System.exit(-1);
-
+        // If the user has already won the game and is in endless mode, they haven't technically "lost"
+        if(gameBoard.isWon()){
+            System.out.print("The board became full after " + totalMoves + " turns! You managed to merge " +
+                                                             totalMerged + " cells for a total score of " + score);
+            System.exit(0);
+        }else{
+            System.out.print("You Lost the Game after " + totalMoves + " turns! You managed to merge " +
+                    totalMerged + " cells for a total score of " + score);
+            System.exit(-1);
+        }
+        
     }
 
     /**
