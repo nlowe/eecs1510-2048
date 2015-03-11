@@ -30,7 +30,7 @@ public class Randomizer
 
     public Randomizer(String seed) throws InvalidSeedException
     {
-        if (!validSeed(seed))
+        if (!Randomizer.validSeed(seed))
         {
             throw new InvalidSeedException("'" + seed + "' is not a valid seed!");
         }
@@ -71,9 +71,7 @@ public class Randomizer
     }
 
     /**
-     * Generates a random seed
-     *
-     * @return
+     * @return a random seed
      */
     public static String randomSeed()
     {

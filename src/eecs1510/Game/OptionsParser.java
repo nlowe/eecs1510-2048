@@ -16,6 +16,10 @@ import java.util.function.Consumer;
 public class OptionsParser
 {
 
+    /**
+     * A small class representing a command-line option that accepts one value
+     * and optionally provides an abbreviation
+     */
     private class Option
     {
         protected final String abbreviation;
@@ -32,6 +36,10 @@ public class OptionsParser
         }
     }
 
+    /**
+     * A small class representing a command-line switch. Not to
+     * be confused with <code>SwitchAction</code>
+     */
     private class SwitchOption
     {
         protected final String name;
@@ -65,6 +73,13 @@ public class OptionsParser
         });
     }
 
+    /**
+     * Register a new option with the parser
+     *
+     * @param name The name of the option
+     * @param callback The function to execute when the option is found. Takes one argument of type string and returns void
+     * @return The option parser the option was added to. Useful for chaining together calls
+     */
     public OptionsParser add(String name, String help, Consumer<String> callback)
     {
         return add(null, name, help, callback);
@@ -73,6 +88,7 @@ public class OptionsParser
     /**
      * Register a new option with the parser
      *
+     * @param abbreviation The short name for the command-line option. Usually one or two characters
      * @param name The name of the option
      * @param callback The function to execute when the option is found. Takes one argument of type string and returns void
      * @return The option parser the option was added to. Useful for chaining together calls
@@ -142,17 +158,22 @@ public class OptionsParser
         return cmd;
     }
 
+    /**
+     * @return The help documentation and signatures for all registered options
+     *          and switches registered with this <code>OptionsParser</code>
+     *          instance
+     */
     public String getHelp()
     {
         StringBuilder sb = new StringBuilder();
 
-        for(Option opt : options)
+        for (Option opt : options)
         {
             sb.append("\t-").append(opt.abbreviation != null ? opt.abbreviation + ", --": "--").append(opt.name).append(" [VALUE]\t\t\t").append(opt.help);
             sb.append("\n");
         }
 
-        for(SwitchOption opt : switchOptions)
+        for (SwitchOption opt : switchOptions)
         {
             sb.append("\t--").append(opt.name).append("\t\t\t").append(opt.help);
             sb.append("\n");

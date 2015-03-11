@@ -83,7 +83,8 @@ public class Board
      * in which you are trying to merge AND no cells can be merged.
      *
      * @param d The direction to squash elements in
-     * @return The total number of squashed tiles or -1 if the move was invalid
+     * @return A MoveResult object with details of what happened when trying to
+     *         execute the move in the specified direction
      */
     public MoveResult squash(Direction d)
     {
@@ -93,7 +94,7 @@ public class Board
             case SOUTH: return squashSouth();
             case  EAST: return squashEast();
             case  WEST: return squashWest();
-            default: return MoveResult.invalid();
+            default:    return MoveResult.invalid();
         }
     }
 
@@ -104,7 +105,7 @@ public class Board
      * @param LTR    The direction to merge in
      * @return a <code>MoveResult</code> object containing the total number
      *         of merged cells as well as the score gained by those merged
-     *         cells
+     *         cells for the specified slice of the game board
      */
     private MoveResult merge(int[] source, boolean LTR)
     {
@@ -334,7 +335,7 @@ public class Board
 
         for (int row = 0; row < size; row++)
         {
-            for (int col=0; col < size; col++)
+            for (int col = 0; col < size; col++)
             {
                 if(data[row][col] <= 0)
                 {
@@ -382,9 +383,9 @@ public class Board
     public boolean isLost()
     {
         // North / South
-        for(int col=0; col<size; col++)
+        for (int col = 0; col < size; col++)
         {
-            for (int row=0; row<size-1; row++)
+            for (int row = 0; row < size - 1; row++)
             {
                 if (data[row][col] == data[row + 1][col] || data[row + 1][col] == 0)
                     return false;
@@ -392,11 +393,11 @@ public class Board
         }
 
         // East / West
-        for(int row=0; row<size; row++)
+        for (int row = 0; row < size; row++)
         {
-            for(int col=0; col<size-1; col++)
+            for (int col = 0; col < size - 1; col++)
             {
-                if(data[row][col] == data[row][col+1] || data[row][col+1] == 0)
+                if(data[row][col] == data[row][col + 1] || data[row][col + 1] == 0)
                     return false;
             }
         }

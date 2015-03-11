@@ -17,8 +17,8 @@ public enum Direction
 
     private static final char[][] NORTH_CHARS = {{'u', '8'}, {'w', 'i'}};
     private static final char[][] SOUTH_CHARS = {{'d', '2'}, {'s', 'k'}};
-    private static final char[][] EAST_CHARS = {{'r', '6'}, {'d', 'l'}};
-    private static final char[][] WEST_CHARS = {{'l', '4'}, {'a', 'j'}};
+    private static final char[][] EAST_CHARS  = {{'r', '6'}, {'d', 'l'}};
+    private static final char[][] WEST_CHARS  = {{'l', '4'}, {'a', 'j'}};
 
     /**
      * For a given character, returns a direction vector corresponding to that character
@@ -65,6 +65,10 @@ public enum Direction
         throw new IllegalArgumentException("Unknown Direction for code " + c);
     }
 
+    /**
+     * @param d
+     * @return The characters that identify the given direction
+     */
     public static char[] getCharactersFor(Direction d)
     {
         switch(d)
@@ -78,8 +82,8 @@ public enum Direction
     }
 
     /**
-     * The original assignment called for UDLR instead of WSAD or IKJL for movement keys.
-     * This method is called to override the original keys with more sensible ones if specified.
+     * The original assignment called for UDLR/8246 instead of WSAD or IKJL for movement keys.
+     * This method is called to override the original keys with more common ones if specified.
      *
      * @param b whether or not to use legacy input keys
      */

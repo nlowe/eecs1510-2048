@@ -72,11 +72,7 @@ public class Game
                     e.printStackTrace();
                 }
             })).add("size", "Initialize the board with the specified size", (i) -> {
-                try {
                     g.resize(Integer.parseInt(i));
-                } catch(Randomizer.InvalidSeedException e) {
-                    e.printStackTrace();
-                }
             }).add("u", "undo", "Maximum undo depth (Default: 1). Negative numbers mean unlimited", (i) -> {
                 try {
                     g.maxUndoCount = Integer.parseInt(i);
@@ -111,11 +107,14 @@ public class Game
      * Re-initializes the game board with the specified size
      *
      * @param size the new size of the game board
-     * @throws Randomizer.InvalidSeedException
      */
-    private void resize(int size) throws Randomizer.InvalidSeedException
+    private void resize(int size)
     {
-        gameBoard = new Board(size, gameBoard.getSeed());
+        try {
+            gameBoard = new Board(size, gameBoard.getSeed());
+        } catch(Randomizer.InvalidSeedException ignore) {
+            // The seed of the existing game board is always valid
+        }
 
         resetStats();
     }
@@ -196,7 +195,7 @@ public class Game
     private static int[][] arrayCopy2d(int[][] source)
     {
         int[][] result = new int[source.length][];
-        for (int i=0; i<source.length; i++)
+        for (int i = 0; i < source.length; i++)
         {
             result[i] = new int[source[i].length];
             System.arraycopy(source[i], 0, result[i], 0, source[i].length);
@@ -274,7 +273,7 @@ public class Game
 
             while(!lost)
             {
-                // Clear Screen on compatible terminals
+                // Clear Screen on compatible terminals if enabled
                 clearScreen();
 
                 printBoard();
@@ -462,7 +461,7 @@ public class Game
     private String keyString(char[] keys)
     {
         StringBuilder sb = new StringBuilder().append("(").append(keys[0]);
-        for(int i=1; i<keys.length-1; i++)
+        for (int i = 1; i < keys.length - 1; i++)
         {
             sb.append(", ").append(keys[i]);
         }
@@ -472,7 +471,7 @@ public class Game
     }
 
     /**
-     * Prints the game board
+     * Prints the game board and statistics
      */
     public void printBoard()
     {
@@ -531,6 +530,9 @@ public class Game
         }
     }
 
+    /**
+     * One of the three types of dividers between rows that appears on the game board
+     */
     public enum RowDividerType
     {
             /** The divider for the top of the game board: '╔══════╦══════╦══════╦══════╗' */ TOP,
