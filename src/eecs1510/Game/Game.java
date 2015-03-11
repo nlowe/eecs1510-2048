@@ -19,27 +19,39 @@ public class Game
     public static final char RESTART = 'r';
     public static final char UNDO = 'z';
     public static final char REDO = 'y';
-    /*===================================== */
+    /* ==================================== */
 
     /** The default size of the undo buffer */
     public static final int DEFAULT_UNDO_SIZE = 1;
 
+    /** Acts as a ring buffer for the game state, limited by the maximum undo count */
     private final LinkedList<GameState> history = new LinkedList<>();
-    private int undoSize = DEFAULT_UNDO_SIZE;
+    /** The maximum number fo turns the user is allowed to undo */
+    private int maxUndoCount = DEFAULT_UNDO_SIZE;
+    /** Acts as a ring buffer for the game state. When a move is undone, the game state is pushed into the buffer */
     private final LinkedList<GameState> redoHistory = new LinkedList<>();
+    /** Whether or not the user is allowed to redo undone moves */
     private boolean allowRedo = false;
 
     /** The game board associated with the current game */
     private Board gameBoard;
 
+    /** Whether or not to try to clear the screen each turn */
     private boolean clearScreenEachTurn = false;
+    /** Whether or not to display statistics next to the game board*/
     private boolean displayStats = true;
+    /** Whether or not the user has lost */
     private boolean lost = false;
+    /** Whether or not we have told the user they have won yet */
     private boolean notifiedWon = false;
 
+    /** The total score so far. Score is the sum of newly merged tiles (example: merging two 2's adds 4 to the score) */
     private int score = 0;
+    /** The total number of moves taken so far*/
     private int totalMoves = 0;
+    /** The total number of merged tiles */
     private int totalMerged = 0;
+    /** The total number of tiles merged during this turn */
     private int totalMergedThisTurn = 0;
 
     /**
@@ -65,9 +77,9 @@ public class Game
                 } catch(Randomizer.InvalidSeedException e) {
                     e.printStackTrace();
                 }
-            }).add("undo", "Maximum undo depth (Default: 1). Negative numbers mean unlimited", (i) -> {
+            }).add("u", "undo", "Maximum undo depth (Default: 1). Negative numbers mean unlimited", (i) -> {
                 try {
-                    g.undoSize = Integer.parseInt(i);
+                    g.maxUndoCount = Integer.parseInt(i);
                 }  catch(NumberFormatException e) {
                     e.printStackTrace();
                 }
@@ -150,12 +162,12 @@ public class Game
      */
     public void takeSnapshot()
     {
-        if (undoSize != 0 && (history.isEmpty() || !Arrays.deepEquals(history.peek().board, gameBoard.getData())))
+        if (maxUndoCount != 0 && (history.isEmpty() || !Arrays.deepEquals(history.peek().board, gameBoard.getData())))
         {
             history.push(getState());
-            if(undoSize > 0)
+            if(maxUndoCount > 0)
             {
-                trimListToSize(history, undoSize);
+                trimListToSize(history, maxUndoCount);
             }
         }
     }
@@ -202,9 +214,9 @@ public class Game
         if (history.size() > 0)
         {
             redoHistory.push(getState());
-            if(undoSize > 0)
+            if(maxUndoCount > 0)
             {
-                trimListToSize(redoHistory, undoSize);
+                trimListToSize(redoHistory, maxUndoCount);
             }
 
             GameState state = history.pop();
@@ -230,9 +242,9 @@ public class Game
         if (allowRedo && redoHistory.size() > 0)
         {
             history.push(getState());
-            if(undoSize > 0)
+            if(maxUndoCount > 0)
             {
-                trimListToSize(history, undoSize);
+                trimListToSize(history, maxUndoCount);
             }
 
             GameState state = redoHistory.pop();
@@ -342,9 +354,11 @@ public class Game
                     score += turn.mergeValue;
                     totalMoves++;
 
-                    if (!gameBoard.placeRandom())
+                    if (!gameBoard.placeRandom() || gameBoard.isLost())
                     {
                         lost = true;
+                        clearScreen();
+                        printBoard();
                         printLostNotification();
                     }
 
@@ -426,7 +440,7 @@ public class Game
         System.out.println("Keys:");
         System.out.println("\th: This Help Menu");
         System.out.println("\tr: Restart the Game");
-        if(undoSize != 0) System.out.println("\tz: Undo the previous move (Max: " + (undoSize < 0 ? "Unlimited" : String.valueOf(undoSize)) + ")");
+        if(maxUndoCount != 0) System.out.println("\tz: Undo the previous move (Max: " + (maxUndoCount < 0 ? "Unlimited" : String.valueOf(maxUndoCount)) + ")");
         if(allowRedo) System.out.println("\ty: Redo the previously undone move");
         System.out.println("\tq: Quit\n");
         System.out.println("\t\t\t\tUP " + keyString(Direction.getCharactersFor(Direction.NORTH)));

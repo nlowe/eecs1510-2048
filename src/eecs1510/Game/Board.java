@@ -312,8 +312,7 @@ public class Board
 
         ArrayList<int[]> freeCells = getFreeCells();
 
-        if (freeCells.isEmpty())
-        {
+        if (freeCells.isEmpty()){
             return false;
         }
 
@@ -326,6 +325,9 @@ public class Board
         return true;
     }
 
+    /**
+     * @return an ArrayList of integer arrays pointing to the location of free cells.
+     */
     public ArrayList<int[]> getFreeCells()
     {
         ArrayList<int[]> results = new ArrayList<>();
@@ -372,6 +374,34 @@ public class Board
         // We're using Java 8, might as well make use of streams
         // Basically, this gets the maximum value in a 2d array
         return Arrays.stream(data).flatMapToInt(Arrays::stream).max().getAsInt() >= WIN_CONDITION_VALUE;
+    }
+
+    /**
+     * @return true if there are no more moves left to be made
+     */
+    public boolean isLost()
+    {
+        // North / South
+        for(int col=0; col<size; col++)
+        {
+            for (int row=0; row<size-1; row++)
+            {
+                if (data[row][col] == data[row + 1][col] || data[row + 1][col] == 0)
+                    return false;
+            }
+        }
+
+        // East / West
+        for(int row=0; row<size; row++)
+        {
+            for(int col=0; col<size-1; col++)
+            {
+                if(data[row][col] == data[row][col+1] || data[row][col+1] == 0)
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     /**
